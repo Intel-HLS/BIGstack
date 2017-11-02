@@ -9,8 +9,7 @@ FRONTEND_HOST=$HOSTNAME
 #Frontend port is 8080 by default - Contact admin if port is different
 
 curl -vXPOST -u $USERNAME:$PASSWORD http://$FRONTEND_HOST:8080/api/v1/workflowcollections \
--F wdlSource=@PairedSingleSampleWf_noqc_nocram_optimized.wdl.wdl \
--F workflowInputs=@PairedSingleSampleWf_noqc_nocram_optimized.inputs.20k.json > 20k_submission_response.txt;
+-F wdlSource=@SingleSample20k.wdl -F workflowInputs=@SingleSample20k.json > 20k_submission_response.txt;
 cat 20k_submission_response.txt | grep -o -E "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" \
 | tail -1 > 20k_WF_ID.txt
 #Second id is actual wf Id - first one is transaction id - ignore
