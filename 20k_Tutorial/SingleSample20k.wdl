@@ -550,7 +550,7 @@ workflow SingleSample20k {
     # Because of a wdl/cromwell bug this is not currently valid so we have to sub(sub()) in each task
     # String base_name = sub(sub(unmapped_bam, "gs://.*/", ""), unmapped_bam_suffix + "$", "")
     # Replace the path below with your shared file system path where the data and input files are hosted
-    String sub_strip_path = "/cluster_share/data/RefArch_Broad_data/.*/"
+    String sub_strip_path = "/cluster_share/data/.*/"
     String sub_strip_unmapped = unmapped_bam_suffix + "$"
 
     # Map reads to reference
