@@ -35,16 +35,16 @@ task CollectQualityYieldMetrics {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
 
   command {
-    java -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       CollectQualityYieldMetrics \
       INPUT=${input_bam} \
       OQ=true \
       OUTPUT=${metrics_filename}
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -70,6 +70,7 @@ task CheckFinalVcfExtension {
     CODE
   >>>
   runtime {
+    docker: "python:2.7"
     memory: memory
     cpu: cpu
   }
@@ -82,16 +83,16 @@ task CheckFinalVcfExtension {
 task GetBwaVersion {
   String memory
   Int cpu
-  String tool_path
 
   command {
     # not setting set -o pipefail here because /bwa has a rc=1 and we dont want to allow rc=1 to succeed because
     # the sed may also fail with that error and that is something we actually want to fail on.
-    ${tool_path}/bwa 2>&1 | \
+    /usr/gitc/bwa 2>&1 | \
     grep -e '^Version' | \
     sed 's/Version: //'
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -109,7 +110,7 @@ task SamToFastqAndBwaMemAndMba {
   File ref_fasta
   File ref_fasta_index
   File ref_dict
-  String tool_path
+  
 
   # This is the .alt file from bwa-kit (https://github.com/lh3/bwa/tree/master/bwakit),
   # listing the reference contigs that are "alternative".
@@ -135,14 +136,14 @@ task SamToFastqAndBwaMemAndMba {
     bwa_threads=${bwa_threads}
     # if ref_alt has data in it,
     if [ -s ${ref_alt} ]; then
-      java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+      java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
         SamToFastq \
         INPUT=${input_bam} \
         FASTQ=/dev/stdout \
         INTERLEAVE=true \
         NON_PF=true | \
-      ${tool_path}/${bwa_commandline} /dev/stdin - 2> >(tee ${output_bam_basename}.bwa.stderr.log >&2) | \
-      java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+      /usr/gitc/${bwa_commandline} /dev/stdin - 2> >(tee ${output_bam_basename}.bwa.stderr.log >&2) | \
+      java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
         MergeBamAlignment \
         VALIDATION_STRINGENCY=SILENT \
         EXPECTED_ORIENTATIONS=FR \
@@ -179,6 +180,7 @@ task SamToFastqAndBwaMemAndMba {
     fi
   >>>
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -196,10 +198,10 @@ task SortSam {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command {
-    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       SortSam \
       INPUT=${input_bam} \
       OUTPUT=${output_bam_basename}.bam \
@@ -209,6 +211,7 @@ task SortSam {
       MAX_RECORDS_IN_RAM=300000
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     cpu: cpu 
     memory: memory
   }
@@ -229,15 +232,16 @@ task SamtoolsSort {
   Int cpu
   Int samtools_threads
   String mem_limit 
-  String tool_path
+  
  
   command <<<
     set -o pipefail
     set -e
-    ${tool_path}/samtools sort -T $TMPDIR/${output_bam_basename}.bam.tmp -m ${mem_limit} --threads ${samtools_threads} -l ${compression_level} ${input_bam} -o ${output_bam_basename}.bam
-    ${tool_path}/samtools index ${output_bam_basename}.bam ${output_bam_basename}.bai
+    samtools sort -T $TMPDIR/${output_bam_basename}.bam.tmp -m ${mem_limit} --threads ${samtools_threads} -l ${compression_level} ${input_bam} -o ${output_bam_basename}.bam
+    samtools index ${output_bam_basename}.bam ${output_bam_basename}.bai
   >>>
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     cpu: cpu
     memory: memory
   }
@@ -255,10 +259,10 @@ task CollectUnsortedReadgroupBamQualityMetrics {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command {
-    java -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       CollectMultipleMetrics \
       INPUT=${input_bam} \
       OUTPUT=${output_bam_prefix} \
@@ -275,6 +279,7 @@ task CollectUnsortedReadgroupBamQualityMetrics {
     touch ${output_bam_prefix}.insert_size_histogram.pdf
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -301,10 +306,10 @@ task CollectReadgroupBamQualityMetrics {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command {
-    java -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       CollectMultipleMetrics \
       INPUT=${input_bam} \
       REFERENCE_SEQUENCE=${ref_fasta} \
@@ -317,6 +322,7 @@ task CollectReadgroupBamQualityMetrics {
       METRIC_ACCUMULATION_LEVEL="READ_GROUP"
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -339,10 +345,10 @@ task CollectAggregationMetrics {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command {
-    java -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       CollectMultipleMetrics \
       INPUT=${input_bam} \
       REFERENCE_SEQUENCE=${ref_fasta} \
@@ -362,6 +368,7 @@ task CollectAggregationMetrics {
     touch ${output_bam_prefix}.insert_size_histogram.pdf
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -390,12 +397,12 @@ task CrossCheckFingerprints {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command <<<
     java -Dsamjdk.buffer_size=131072 \
       -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xmx${java_heap_memory_initial} \
-      -jar ${tool_path}/picard.jar \
+      -jar /usr/gitc/picard.jar \
       CrosscheckReadGroupFingerprints \
       OUTPUT=${metrics_filename} \
       HAPLOTYPE_MAP=${haplotype_database_file} \
@@ -404,6 +411,7 @@ task CrossCheckFingerprints {
       LOD_THRESHOLD=-20.0
   >>>
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -423,12 +431,12 @@ task CheckFingerprint {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command <<<
     java -Dsamjdk.buffer_size=131072 \
       -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xmx${java_heap_memory_initial}  \
-      -jar ${tool_path}/picard.jar \
+      -jar /usr/gitc/picard.jar \
       CheckFingerprint \
       INPUT=${input_bam} \
       OUTPUT=${output_basename} \
@@ -438,6 +446,7 @@ task CheckFingerprint {
       IGNORE_READ_GROUPS=true
   >>>
  runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -456,7 +465,7 @@ task MarkDuplicates {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   # The program default for READ_NAME_REGEX is appropriate in nearly every case.
   # Sometimes we wish to supply "null" in order to turn off optical duplicate detection
@@ -467,7 +476,7 @@ task MarkDuplicates {
  # This works because the output of BWA is query-grouped and therefore, so is the output of MergeBamAlignment.
  # While query-grouped isn't actually query-sorted, it's good enough for MarkDuplicates with ASSUME_SORT_ORDER="queryname"
   command {
-    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       MarkDuplicates \
       INPUT=${sep=' INPUT=' input_bams} \
       OUTPUT=${output_bam_basename}.bam \
@@ -480,6 +489,7 @@ task MarkDuplicates {
       ADD_PG_TAG_TO_READS=false
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -535,6 +545,7 @@ task CreateSequenceGroupingTSV {
     CODE
   >>>
   runtime {
+    docker: "python:2.7"
     memory: memory
     cpu: cpu
   }
@@ -561,11 +572,11 @@ task BaseRecalibrator {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command <<<
-    export GATK_LOCAL_JAR=${tool_path}/gatk4.0.0.0/gatk.jar && \
-    ${tool_path}/gatk4.0.0.0/gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -XX:+PrintFlagsFinal \
+    export GATK_LOCAL_JAR=/gatk/gatk.jar && \
+    /gatk/gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -XX:+PrintFlagsFinal \
       -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails \
       -Xloggc:gc_log.log -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial}" \
       BaseRecalibrator \
@@ -578,6 +589,7 @@ task BaseRecalibrator {
       -L ${sep=" -L " sequence_group_interval}
   >>>
   runtime {
+    docker: "broadinstitute/gatk:4.0.0.0"
     memory: memory
     cpu: cpu
   }
@@ -600,11 +612,11 @@ task ApplyBQSR {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command <<<
-    export GATK_LOCAL_JAR=${tool_path}/gatk4.0.0.0/gatk.jar && \
-    ${tool_path}/gatk4.0.0.0/gatk --java-options "-XX:+PrintFlagsFinal -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps \
+    export GATK_LOCAL_JAR=/gatk/gatk.jar && \
+    /gatk/gatk --java-options "-XX:+PrintFlagsFinal -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps \
       -XX:+PrintGCDetails -Xloggc:gc_log.log \
       -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial}" \
       ApplyBQSR \
@@ -619,6 +631,7 @@ task ApplyBQSR {
       -L ${sep=" -L " sequence_group_interval}
   >>>
   runtime {
+    docker: "broadinstitute/gatk:4.0.0.0"
     memory: memory
     cpu: cpu
   }
@@ -636,16 +649,17 @@ task GatherBqsrReports {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command <<<
-    export GATK_LOCAL_JAR=${tool_path}/gatk4.0.0.0/gatk.jar && \
-    ${tool_path}/gatk4.0.0.0/gatk --java-options "-Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial}" \
+    export GATK_LOCAL_JAR=/gatk/gatk.jar && \
+    /gatk/gatk --java-options "-Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial}" \
       GatherBQSRReports \
       -I ${sep=' -I ' input_bqsr_reports} \
       -O ${output_report_filename}
     >>>
   runtime {
+    docker: "broadinstitute/gatk:4.0.0.0"
     memory: memory
     cpu: cpu
   }
@@ -662,10 +676,10 @@ task GatherBamFiles {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command {
-    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       GatherBamFiles \
       INPUT=${sep=' INPUT=' input_bams} \
       OUTPUT=${output_bam_basename}.bam \
@@ -673,6 +687,7 @@ task GatherBamFiles {
       CREATE_MD5_FILE=true
     }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -696,10 +711,10 @@ task ValidateSamFile {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command {
-    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       ValidateSamFile \
       INPUT=${input_bam} \
       OUTPUT=${report_filename} \
@@ -710,6 +725,7 @@ task ValidateSamFile {
       IS_BISULFITE_SEQUENCED=false
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -731,10 +747,10 @@ task CollectWgsMetrics {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command {
-    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       CollectWgsMetrics \
       INPUT=${input_bam} \
       VALIDATION_STRINGENCY=SILENT \
@@ -746,6 +762,7 @@ task CollectWgsMetrics {
       READ_LENGTH=${read_length}
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -767,10 +784,10 @@ task CollectRawWgsMetrics {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command {
-    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial}  -jar ${tool_path}/picard.jar \
+    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial}  -jar /usr/gitc/picard.jar \
       CollectRawWgsMetrics \
       INPUT=${input_bam} \
       VALIDATION_STRINGENCY=SILENT \
@@ -782,6 +799,7 @@ task CollectRawWgsMetrics {
       READ_LENGTH=${read_length}
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -799,15 +817,16 @@ task CalculateReadGroupChecksum {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command {
-    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       CalculateReadGroupChecksum \
       INPUT=${input_bam} \
       OUTPUT=${read_group_md5_filename}
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -841,7 +860,7 @@ task CheckContamination {
   Float contamination_underestimation_factor
   String memory
   Int cpu
-  String tool_path
+  
   
   command <<<
     set -e
@@ -849,7 +868,7 @@ task CheckContamination {
     # creates a ${output_prefix}.selfSM file, a TSV file with 2 rows, 19 columns.
     # First row are the keys (e.g., SEQ_SM, RG, FREEMIX), second row are the associated values
     #/usr/gitc/VerifyBamID \
-    ${tool_path}/VerifyBamID/VerifyBamID \
+    /usr/gitc/VerifyBamID/VerifyBamID \
     --Verbose \
     --NumPC 4 \
     --Output ${output_prefix} \
@@ -884,6 +903,7 @@ task CheckContamination {
     CODE
   >>>
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -904,12 +924,12 @@ task ScatterIntervalList {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command <<<
     set -e
     mkdir out
-    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       IntervalListTools \
       SCATTER_COUNT=${scatter_count} \
       SUBDIVISION_MODE=BALANCING_WITHOUT_INTERVAL_SUBDIVISION_WITH_OVERFLOW \
@@ -935,6 +955,7 @@ task ScatterIntervalList {
     Int interval_count = read_int(stdout())
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -956,14 +977,14 @@ task HaplotypeCaller {
   String haplotypecaller_java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   String smith_waterman_implementation
   
   # We use interval_padding 500 below to make sure that the HaplotypeCaller has context on both sides around
   # the interval because the assembly uses them.
   command <<<
-      export GATK_LOCAL_JAR=${tool_path}/gatk4.0.0.0/gatk.jar && \
-      ${tool_path}/gatk4.0.0.0/gatk --java-options -Xmx${haplotypecaller_java_heap_memory_initial} \
+      export GATK_LOCAL_JAR=/gatk/gatk.jar && \
+      /gatk/gatk --java-options -Xmx${haplotypecaller_java_heap_memory_initial} \
       HaplotypeCaller \
       -R ${ref_fasta} \
       -I ${input_bam} \
@@ -978,6 +999,7 @@ task HaplotypeCaller {
       --smith-waterman ${smith_waterman_implementation}
   >>>
   runtime {
+    docker: "broadinstitute/gatk:4.0.0.0"
     memory: memory
     cpu: cpu
     #require_fpga: "yes"
@@ -997,18 +1019,19 @@ task MergeVCFs {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   # Using MergeVcfs instead of GatherVcfs so we can create indices
   # See https://github.com/broadinstitute/picard/issues/789 for relevant GatherVcfs ticket
   command <<<
-      export GATK_LOCAL_JAR=${tool_path}/gatk4.0.0.0/gatk.jar && \
-      ${tool_path}/gatk4.0.0.0/gatk --java-options -Xmx${java_heap_memory_initial} \
+      export GATK_LOCAL_JAR=/gatk/gatk.jar && \
+      /gatk/gatk --java-options -Xmx${java_heap_memory_initial} \
       MergeVcfs \
       --INPUT=${sep=' --INPUT=' input_vcfs} \
       --OUTPUT=${output_vcf_name}
   >>>
   runtime {
+    docker: "broadinstitute/gatk:4.0.0.0"
     memory: memory
     cpu: cpu
   }
@@ -1032,11 +1055,11 @@ task ValidateGVCF {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command <<<
-    export GATK_LOCAL_JAR=${tool_path}/gatk4.0.0.0/gatk.jar && \
-    ${tool_path}/gatk4.0.0.0/gatk --java-options "-Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial}" \
+    export GATK_LOCAL_JAR=/gatk/gatk.jar && \
+    /gatk/gatk --java-options "-Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial}" \
       ValidateVariants \
       -V ${input_vcf} \
       -R ${ref_fasta} \
@@ -1046,6 +1069,7 @@ task ValidateGVCF {
       --dbsnp ${dbSNP_vcf}
   >>>
   runtime {
+    docker: "broadinstitute/gatk:4.0.0.0"
     memory: memory
     cpu: cpu
   }
@@ -1064,10 +1088,10 @@ task CollectGvcfCallingMetrics {
   String java_heap_memory_initial
   String memory
   Int cpu
-  String tool_path
+  
   
   command {
-    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar ${tool_path}/picard.jar \
+    java -Dsamjdk.compression_level=${compression_level} -Xmx${java_heap_memory_initial} -jar /usr/gitc/picard.jar \
       CollectVariantCallingMetrics \
       INPUT=${input_vcf} \
       OUTPUT=${metrics_basename} \
@@ -1077,6 +1101,7 @@ task CollectGvcfCallingMetrics {
       GVCF_INPUT=true
   }
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -1095,24 +1120,25 @@ task ConvertToCram {
   String output_basename
   String memory
   Int cpu
-  String tool_path
+  
   
   command <<<
     set -e
     set -o pipefail
 
-    ${tool_path}/samtools view -C -T ${ref_fasta} ${input_bam} | \
+    samtools view -C -T ${ref_fasta} ${input_bam} | \
     tee ${output_basename}.cram | \
     md5sum | awk '{print $1}' > ${output_basename}.cram.md5
 
     # Create REF_CACHE. Used when indexing a CRAM
-    ${tool_path}/seq_cache_populate.pl -root ./ref/cache ${ref_fasta}
+    /usr/gitc/seq_cache_populate.pl -root ./ref/cache ${ref_fasta}
     export REF_PATH=:
     export REF_CACHE=./ref/cache/%2s/%2s/%s
 
-    ${tool_path}/samtools index ${output_basename}.cram
+    samtools index ${output_basename}.cram
   >>>
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -1132,18 +1158,19 @@ task CramToBam {
   String output_basename
   String memory
   Int cpu
-  String tool_path
+  
   
   command <<<
     set -e
     set -o pipefail
 
-    ${tool_path}/samtools view -h -T ${ref_fasta} ${cram_file} |
-    ${tool_path}/samtools view -b -o ${output_basename}.bam -
-    ${tool_path}/samtools index -b ${output_basename}.bam
+    samtools view -h -T ${ref_fasta} ${cram_file} |
+    samtools view -b -o ${output_basename}.bam -
+    samtools index -b ${output_basename}.bam
     mv ${output_basename}.bam.bai ${output_basename}.bai
   >>>
   runtime {
+    docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1512499786"
     memory: memory
     cpu: cpu
   }
@@ -1164,6 +1191,7 @@ task SumFloats {
     Float total_size = read_float(stdout())
   }
   runtime {
+    docker: "python:2.7"
   }
 }
 
@@ -1224,9 +1252,6 @@ workflow PairedEndSingleSampleWorkflow {
   # Mark Duplicates takes in as input readgroup bams and outputs a slightly smaller aggregated bam. Giving .25 as wiggleroom
   Float md_disk_multiplier = 2.25
 
-  # Path to tools
-  String tool_path
-  
   #Optimization flags
   Int bwa_threads
   Int samtools_threads
@@ -1242,10 +1267,7 @@ workflow PairedEndSingleSampleWorkflow {
 
   # Get the version of BWA to include in the PG record in the header of the BAM produced
   # by MergeBamAlignment.
-  call GetBwaVersion {
-     input: 
-	    tool_path = tool_path
-  }
+  call GetBwaVersion 
 
   # Check that the GVCF output name follows convention
   call CheckFinalVcfExtension {
@@ -1273,7 +1295,7 @@ workflow PairedEndSingleSampleWorkflow {
     #  input:
 	#    input_bam = unmapped_bam,
     #    metrics_filename = sub_sub + ".unmapped.quality_yield_metrics",
-	#    tool_path = tool_path
+	#    
     #}
 
     # Map reads to reference
@@ -1296,8 +1318,8 @@ workflow PairedEndSingleSampleWorkflow {
         # so account for the output size by multiplying the input size by 2.75.
         #disk_size = unmapped_bam_size + bwa_ref_size + (bwa_disk_multiplier * unmapped_bam_size) + small_additional_disk,
         compression_level = compression_level,
-        bwa_threads = bwa_threads,
-		tool_path = tool_path
+        bwa_threads = bwa_threads
+		
     }
 
     Float mapped_bam_size = size(SamToFastqAndBwaMemAndMba.output_bam, "GB")
@@ -1307,8 +1329,8 @@ workflow PairedEndSingleSampleWorkflow {
     #call CollectUnsortedReadgroupBamQualityMetrics {
     #  input:
     #    input_bam = SamToFastqAndBwaMemAndMba.output_bam,
-    #    output_bam_prefix = sub_sub + ".readgroup",
-	#     tool_path = tool_path
+    #    output_bam_prefix = sub_sub + ".readgroup"
+	#     
     #}
   }
 
@@ -1329,8 +1351,8 @@ workflow PairedEndSingleSampleWorkflow {
       # The merged bam will be smaller than the sum of the parts so we need to account for the unmerged inputs
       # and the merged output.
       #disk_size = (md_disk_multiplier * SumFloats.total_size) + small_additional_disk,
-      compression_level = compression_level,
-	  tool_path = tool_path
+      compression_level = compression_level
+	  
   }
 
   Float agg_bam_size = size(MarkDuplicates.output_bam, "GB")
@@ -1344,8 +1366,8 @@ workflow PairedEndSingleSampleWorkflow {
       # This task spills to disk so we need space for the input bam, the output bam, and any spillage.
       #disk_size = (sort_sam_disk_multiplier * agg_bam_size) + small_additional_disk,
       compression_level = compression_level,
-      samtools_threads = samtools_threads,
-	  tool_path = tool_path
+      samtools_threads = samtools_threads
+	  
   }
 
   if (defined(haplotype_database_file)) {
@@ -1355,8 +1377,8 @@ workflow PairedEndSingleSampleWorkflow {
         input_bams = SortSampleBam.output_bam,
         input_bam_indexes = SortSampleBam.output_bam_index,
         haplotype_database_file = haplotype_database_file,
-        metrics_filename = sample_name + ".crosscheck",
-		tool_path = tool_path
+        metrics_filename = sample_name + ".crosscheck"
+		
     }
   }
 
@@ -1377,8 +1399,8 @@ workflow PairedEndSingleSampleWorkflow {
   #    ref_fasta = ref_fasta,
   #    ref_fasta_index = ref_fasta_index,
   #    output_prefix = base_file_name + ".preBqsr",
-  #    contamination_underestimation_factor = 0.75,
-	#  tool_path = tool_path
+  #    contamination_underestimation_factor = 0.75
+	#  
   #}
 
   # We need disk to localize the sharded input and output due to the scatter for BQSR.
@@ -1406,8 +1428,8 @@ workflow PairedEndSingleSampleWorkflow {
         ref_fasta_index = ref_fasta_index,
         # We need disk to localize the sharded bam due to the scatter.
         #disk_size = (agg_bam_size / bqsr_divisor) + ref_size + dbsnp_size + small_additional_disk,
-        compression_level = compression_level,
-		tool_path = tool_path
+        compression_level = compression_level
+		
     }
   }
 
@@ -1417,8 +1439,8 @@ workflow PairedEndSingleSampleWorkflow {
     input:
       input_bqsr_reports = BaseRecalibrator.recalibration_report,
       output_report_filename = base_file_name + ".recal_data.csv",
-      compression_level = compression_level,
-	  tool_path = tool_path
+      compression_level = compression_level
+	  
   }
 
   scatter (subgroup in CreateSequenceGroupingTSV.sequence_grouping_with_unmapped) {
@@ -1435,8 +1457,8 @@ workflow PairedEndSingleSampleWorkflow {
         ref_fasta_index = ref_fasta_index,
         # We need disk to localize the sharded bam and the sharded output due to the scatter.
         #disk_size = ((agg_bam_size + agg_bam_size) / bqsr_divisor) + ref_size + small_additional_disk,
-        compression_level = compression_level,
-		tool_path = tool_path
+        compression_level = compression_level
+		
     }
   }
 
@@ -1447,8 +1469,8 @@ workflow PairedEndSingleSampleWorkflow {
       output_bam_basename = base_file_name,
       # Multiply the input bam size by two to account for the input and output
       #disk_size = (2 * agg_bam_size) + small_additional_disk,
-      compression_level = compression_level,
-	  tool_path = tool_path
+      compression_level = compression_level
+	  
   }
 
   #BQSR bins the qualities which makes a significantly smaller bam
@@ -1462,8 +1484,8 @@ workflow PairedEndSingleSampleWorkflow {
   #    output_bam_prefix = base_file_name + ".readgroup",
   #    ref_dict = ref_dict,
   #    ref_fasta = ref_fasta,
-  #    ref_fasta_index = ref_fasta_index,
-  #    tool_path = tool_path
+  #    ref_fasta_index = ref_fasta_index
+  #    
   #}
 
   # QC the final BAM some more (no such thing as too much QC)
@@ -1474,8 +1496,8 @@ workflow PairedEndSingleSampleWorkflow {
   #    output_bam_prefix = base_file_name,
   #    ref_dict = ref_dict,
   #    ref_fasta = ref_fasta,
-  #    ref_fasta_index = ref_fasta_index,
-  #    tool_path = tool_path
+  #    ref_fasta_index = ref_fasta_index
+  #    
   #}
 
   if (defined(haplotype_database_file) && defined(fingerprint_genotypes_file)) {
@@ -1487,8 +1509,8 @@ workflow PairedEndSingleSampleWorkflow {
         haplotype_database_file = haplotype_database_file,
         genotypes = fingerprint_genotypes_file,
         output_basename = base_file_name,
-        sample = sample_name,
-		tool_path = tool_path
+        sample = sample_name
+		
     }
   }
 
@@ -1502,8 +1524,8 @@ workflow PairedEndSingleSampleWorkflow {
   #    ref_fasta_index = ref_fasta_index,
   #    wgs_coverage_interval_list = wgs_coverage_interval_list,
   #    read_length = read_length,
-  #    compression_level = compression_level,
-  #    tool_path = tool_path
+  #    compression_level = compression_level
+  #    
   #}
 
   # QC the sample raw WGS metrics (common thresholds)
@@ -1516,8 +1538,8 @@ workflow PairedEndSingleSampleWorkflow {
   #    ref_fasta_index = ref_fasta_index,
   #    wgs_coverage_interval_list = wgs_coverage_interval_list,
   #    read_length = read_length,
-  #    compression_level = compression_level,
-  #    tool_path = tool_path
+  #    compression_level = compression_level
+  #    
   #}
 
   # Generate a checksum per readgroup in the final BAM
@@ -1526,8 +1548,8 @@ workflow PairedEndSingleSampleWorkflow {
   #    input_bam = GatherBamFiles.output_bam,
   #    input_bam_index = GatherBamFiles.output_bam_index,
   #    read_group_md5_filename = recalibrated_bam_basename + ".bam.read_group_md5",
-  #    compression_level = compression_level,
-  #    tool_path = tool_path
+  #    compression_level = compression_level
+  #    
   #}
 
   # Convert the final merged recalibrated BAM file to CRAM format
@@ -1537,10 +1559,10 @@ workflow PairedEndSingleSampleWorkflow {
   #    ref_fasta = ref_fasta,
   #    ref_fasta_index = ref_fasta_index,
   #    output_basename = base_file_name,
-  #    tool_path = tool_path
+  #    
       # We need more wiggle room for small samples (for example if binned_qual_bam_size is < 1) and
       # multiplying the input size by 2 to account for the output cram.
-      #disk_size = (2 * binned_qual_bam_size) + ref_size + medium_additional_disk,
+      #disk_size = (2 * binned_qual_bam_size) + ref_size + medium_additional_disk
   #}
 
   #Float cram_size = size(ConvertToCram.output_cram, "GB")
@@ -1552,8 +1574,8 @@ workflow PairedEndSingleSampleWorkflow {
   #    ref_dict = ref_dict,
   #    ref_fasta_index = ref_fasta_index,
   #    cram_file = ConvertToCram.output_cram,
-  #    output_basename = base_file_name + ".roundtrip",
-  #    tool_path = tool_path
+  #    output_basename = base_file_name + ".roundtrip"
+  #    
   #}
 
   # Validate the roundtripped BAM
@@ -1566,8 +1588,8 @@ workflow PairedEndSingleSampleWorkflow {
   #    ref_fasta = ref_fasta,
   #    ref_fasta_index = ref_fasta_index,
   #    max_output = 1000000000,
-  #    compression_level = compression_level,
-  #    tool_path = tool_path
+  #    compression_level = compression_level
+  #    
   #}
 
   # Break the calling interval_list into sub-intervals
@@ -1577,8 +1599,8 @@ workflow PairedEndSingleSampleWorkflow {
       interval_list = wgs_calling_interval_list,
       scatter_count = haplotype_scatter_count,
       break_bands_at_multiples_of = break_bands_at_multiples_of,
-      compression_level = compression_level,
-	  tool_path = tool_path
+      compression_level = compression_level
+	  
   }
 
   # We need disk to localize the sharded input and output due to the scatter for HaplotypeCaller.
@@ -1604,8 +1626,8 @@ workflow PairedEndSingleSampleWorkflow {
         #disk_size = ((binned_qual_bam_size + GVCF_disk_size) / hc_divisor) + ref_size + small_additional_disk,
         compression_level = compression_level, 
         gatk_gkl_pairhmm_implementation = gatk_gkl_pairhmm_implementation, 
-        gatk_gkl_pairhmm_threads = gatk_gkl_pairhmm_threads,
-        tool_path = tool_path
+        gatk_gkl_pairhmm_threads = gatk_gkl_pairhmm_threads
+        
 		#tmp_directory = tmp_directory
      }
   }
@@ -1616,8 +1638,8 @@ workflow PairedEndSingleSampleWorkflow {
       input_vcfs = HaplotypeCaller.output_gvcf,
       input_vcfs_indexes = HaplotypeCaller.output_gvcf_index,
       output_vcf_name = final_gvcf_name,
-      compression_level = compression_level,
-	  tool_path = tool_path
+      compression_level = compression_level
+	  
   }
 
   #Float gvcf_size = size(MergeVCFs.output_vcf, "GB")
@@ -1633,8 +1655,8 @@ workflow PairedEndSingleSampleWorkflow {
   #    ref_fasta_index = ref_fasta_index,
   #    ref_dict = ref_dict,
   #    wgs_calling_interval_list = wgs_calling_interval_list,
-  #    compression_level = compression_level,
-  #    tool_path = tool_path
+  #    compression_level = compression_level
+  #    
   #}
 
   # QC the GVCF
@@ -1647,8 +1669,8 @@ workflow PairedEndSingleSampleWorkflow {
   #    dbSNP_vcf_index = dbSNP_vcf_index,
   #    ref_dict = ref_dict,
   #    wgs_evaluation_interval_list = wgs_evaluation_interval_list,
-  #    compression_level = compression_level,
-  #    tool_path = tool_path
+  #    compression_level = compression_level
+  #    
   #}
 
   # Outputs that will be retained when execution is complete
