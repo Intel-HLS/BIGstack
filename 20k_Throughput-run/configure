@@ -1,0 +1,18 @@
+#! /bin/bash
+
+export http_proxy=
+export https_proxy=
+CROMWELL_HOST=$HOSTNAME
+
+export BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+echo "export GENOMICS_PATH=/mnt/lustre/genomics">>~/.bashrc
+echo "export TOOLS_PATH=/mnt/lustre/genomics/tools">>~/.bashrc
+
+#specify the path to data download directory
+export DATA_PATH="/mnt/lustre/genomics/data"
+
+#Enter the number of workflow for throughput run
+export NUM_WORKFLOW=64
+
+source ~/.bashrc
+
