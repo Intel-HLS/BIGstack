@@ -1,4 +1,4 @@
-#/bin/bash
+#! /bin/bash
 # Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); # you may not use this file except in compliance with the License.
@@ -88,6 +88,7 @@ wget -nc -v -P $DATA_PATH/genomics-public-data/test-data/dna/wgs/hiseq2500/NA128
 $GCP_PATH/genomics-public-data/test-data/dna/wgs/hiseq2500/NA12878/H06JUADXX130110.1.ATCACGAT.20k_reads.bam
 chmod -R 777 $DATA_PATH/genomics-public-data/test-data/dna/wgs/hiseq2500/NA12878
 echo "Data for tutorial downloaded successfully"
+
 sleep 1
 fi
 echo Replicating 20k Dataset for 20k-Throughput-run
