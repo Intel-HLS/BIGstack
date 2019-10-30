@@ -35,6 +35,6 @@ done
 
 
 ############Editing WDL file##################
-#add the tool versions
+#user may either edit the tool versions in the WDL file or create symlinks to each tool and add the symlink to the WDL
 
 cp $BASEDIR/PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k $BASEDIR/JSON/PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k

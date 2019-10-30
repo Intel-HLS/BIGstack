@@ -40,7 +40,7 @@ e=`date -d "$e" +%s`
 
 sec=`expr $e - $s`
 min=$(($sec / 60))
-echo $s $e total seconds: $sec minunts: $min
+echo $s $e total seconds: $sec minutes: $min
 
 ########## Average elapse time taken for Mark Duplicates#############
 sum=0
