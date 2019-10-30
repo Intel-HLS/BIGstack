@@ -18,13 +18,12 @@ datapath=${DATA_PATH}
 toolspath=${TOOLS_PATH}
 
 
-mkdir -p  $BASEDIR/WDL
 mkdir -p  $BASEDIR/JSON
 
 #edit the path to dataset
 cp $BASEDIR/PairedSingleSampleWf_optimized.inputs.20k.json $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
 newdatapath=${GENOMICS_PATH}/data
-newtoolspath=${TOOLS_PATH}/tools
+newtoolspath=${TOOLS_PATH}
 sed -i "s%$datapath%$newdatapath%g" $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
 sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
 limit=$NUM_WORKFLOW
@@ -39,4 +38,3 @@ done
 ############Editing WDL file##################
 #user may either edit the tool versions in the WDL file or create symlinks to each tool and add the symlink to the WDL
 
-cp $BASEDIR/PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k $BASEDIR/WDL/PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k

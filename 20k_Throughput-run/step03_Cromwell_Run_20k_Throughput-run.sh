@@ -13,7 +13,7 @@
 
 source configure
 
-WDL=$GENOMICS_PATH/WDL/PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k
+WDL=PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k
 JSON=$GENOMICS_PATH/JSON/PairedSingleSampleWf_optimized.inputs
 
 limit=$NUM_WORKFLOW
