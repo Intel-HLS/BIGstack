@@ -16,7 +16,7 @@ export http_proxy=
 export https_proxy=
 CROMWELL_HOST=$HOSTNAME
 
-export BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 GENOMICS_PATH="/mnt/lustre/genomics"
 TOOLS_PATH="/mnt/lustre/genomics/tools"
 

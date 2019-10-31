@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-source configure
+source ./configure
 
 WDL=PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k
 JSON=$GENOMICS_PATH/JSON/PairedSingleSampleWf_optimized.inputs

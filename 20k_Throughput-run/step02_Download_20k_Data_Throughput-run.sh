@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-source configure 
+source ./configure 
 limit=$NUM_WORKFLOW
 if [ -d $DATA_PATH/genomics-public-data ]
 	then
@@ -95,5 +95,5 @@ echo Replicating 20k Dataset for 20k-Throughput-run
 
 for i in $(seq $limit)
 do
-	cp -r $DATA_PATH/genomics-public-data $DATA_PATH/genomics-public-data$i &
+	cp -r $DATA_PATH/genomics-public-data $DATA_PATH/genomics-public-data$i 
 done

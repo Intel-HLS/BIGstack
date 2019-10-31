@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-source configure
+source ./configure
 
 curl localhost:8000/api/workflows/v1/query 2>/dev/null | json_pp>cromwell_stop
 

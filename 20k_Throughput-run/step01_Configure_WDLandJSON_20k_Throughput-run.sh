@@ -12,7 +12,7 @@
 #
 
 ###########Editing JSON file#############
-source configure
+source ./configure
 
 datapath=${DATA_PATH}
 toolspath=${TOOLS_PATH}
