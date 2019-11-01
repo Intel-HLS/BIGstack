@@ -63,5 +63,4 @@ done
 let "avg = sum / $limit"
 let "x = $avg / 100"
 let "y = $avg % 100"
-echo Average Elapsed Time for Mark Duplicates $NUM_WORKFLOW workflows : $x.$y minutes
-
+printf " Average Elapsed Time for Mark Duplicates $NUM_WORKFLOW workflows : $x.%02d minutes" $y
