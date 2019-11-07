@@ -10,7 +10,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-
 source ./configure
 
 curl localhost:8000/api/workflows/v1/query 2>/dev/null | json_pp>cromwell_stop
@@ -40,7 +39,10 @@ e=`date -d "$e" +%s`
 
 sec=`expr $e - $s`
 min=$(($sec / 60))
-echo $s $e total seconds: $sec minutes: $min
+minsec=$(($sec % 60))
+
+#echo total elapse time for $NUM_WORKFLOWS s minutes: $min
+printf "Total Elapsed Time for  $NUM_WORKFLOW workflows : $min:%2d \n" $minsec
 
 ########## Average elapse time taken for Mark Duplicates#############
 sum=0
@@ -49,7 +51,7 @@ limit=$NUM_WORKFLOW
 for i in `cat 20k_WF_ID/20k_WF_ID_* | cut -d '"' -f2`;
 do
 
-data=`grep "Elapsed time: " /mnt/lustre/genomics/cromwell/cromwell-slurm-exec/PairedEndSingleSampleWorkflow/$i/call-MarkDuplicates/execution/stderr | cut -d ':' -f 4 | cut -d " " -f 2`
+data=`grep "Elapsed time: " $GENOMICS_PATH/cromwell/cromwell-slurm-exec/PairedEndSingleSampleWorkflow/$i/call-MarkDuplicates/execution/stderr | cut -d ':' -f 4 | cut -d " " -f 2`
 #echo Elapsed time : $data minutes
 
 x=`echo $data | cut -d '.' -f 1`
@@ -57,10 +59,9 @@ y=`echo $data | cut -d '.' -f 2`
 let "z= $x*100 + $y"
 
 let "sum= $sum + $z"
-
 done
 
 let "avg = sum / $limit"
 let "x = $avg / 100"
 let "y = $avg % 100"
-printf " Average Elapsed Time for Mark Duplicates $NUM_WORKFLOW workflows : $x.%02d minutes" $y
+printf "Average Elapsed Time for Mark Duplicates $NUM_WORKFLOW workflows : $x.%02d minutes\n" $y
