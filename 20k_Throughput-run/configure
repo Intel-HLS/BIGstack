@@ -14,6 +14,7 @@
 
 export http_proxy=
 export https_proxy=
+export  no_proxy="localhost"
 CROMWELL_HOST=$HOSTNAME
 
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
