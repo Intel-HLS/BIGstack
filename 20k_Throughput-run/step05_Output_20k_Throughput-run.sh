@@ -41,8 +41,7 @@ sec=`expr $e - $s`
 min=$(($sec / 60))
 minsec=$(($sec % 60))
 
-#echo total elapse time for $NUM_WORKFLOWS s minutes: $min
-printf "Total Elapsed Time for  $NUM_WORKFLOW workflows : $min:%2d \n" $minsec
+printf "Total Elapsed Time for $NUM_WORKFLOW workflows: $min minutes:%2d seconds \n " $minsec
 
 ########## Average elapse time taken for Mark Duplicates#############
 sum=0
@@ -52,7 +51,6 @@ for i in `cat 20k_WF_ID/20k_WF_ID_* | cut -d '"' -f2`;
 do
 
 data=`grep "Elapsed time: " $GENOMICS_PATH/cromwell/cromwell-slurm-exec/PairedEndSingleSampleWorkflow/$i/call-MarkDuplicates/execution/stderr | cut -d ':' -f 4 | cut -d " " -f 2`
-#echo Elapsed time : $data minutes
 
 x=`echo $data | cut -d '.' -f 1`
 y=`echo $data | cut -d '.' -f 2`
@@ -64,4 +62,6 @@ done
 let "avg = sum / $limit"
 let "x = $avg / 100"
 let "y = $avg % 100"
-printf "Average Elapsed Time for Mark Duplicates $NUM_WORKFLOW workflows : $x.%02d minutes\n" $y
+printf "Average Elapsed Time for Mark Duplicates: $x.%02d minutes\n" $y
+
+
