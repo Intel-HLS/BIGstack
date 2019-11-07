@@ -14,7 +14,7 @@
 source ./configure
 
 WDL=PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k
-JSON=$BASE_DIRECTORY/JSON/PairedSingleSampleWf_optimized.inputs
+JSON=$BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs
 
 limit=$NUM_WORKFLOW
 
