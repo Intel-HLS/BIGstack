@@ -14,11 +14,11 @@
 source ./configure
 
 WDL=PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k
-JSON=$GENOMICS_PATH/JSON/PairedSingleSampleWf_optimized.inputs
+JSON=$BASE_DIRECTORY/JSON/PairedSingleSampleWf_optimized.inputs
 
 limit=$NUM_WORKFLOW
 
-export DATE_WITH_TIME=`date "+%Y%m%d::%H:%M:%S"`
+export DATE_WITH_TIME=`date "+%Y%m%d:%H-%M-%S"`
 mkdir "20k_WF_ID-"$DATE_WITH_TIME""
 mkdir "cromwell-status-"$DATE_WITH_TIME""
 #remove the temporarary diriectories from previous runs.
