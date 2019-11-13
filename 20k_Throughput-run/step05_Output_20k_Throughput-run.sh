@@ -54,9 +54,10 @@ data=`grep "Elapsed time: " $GENOMICS_PATH/cromwell/cromwell-slurm-exec/PairedEn
 
 x=`echo $data | cut -d '.' -f 1`
 y=`echo $data | cut -d '.' -f 2`
-let "z= $x*100 + $y"
+let "z= 10#$x*100 + 10#$y"
 
-let "sum= $sum + $z"
+let "sum= 10#$sum + 10#$z"
+
 done
 
 let "avg = sum / $limit"
