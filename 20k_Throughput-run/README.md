@@ -3,8 +3,8 @@ To submit, monitor, and receive output from these workflows, follow these steps:
 
 ## 1.	Clone the repository
 To clone the repository, run these commands:
-  ### i.	git clone https://github.com/BIGstack.git
-  ### ii.	cd 20k_Throughput-run
+     i. 	git clone https://github.com/BIGstack.git
+     ii.	cd 20k_Throughput-run
   
 ## 2.	Configure and setup environment variables
 Edit the configure file to set up the various paths to work directories:GENOMICS_PATH, TOOLS_PATH, DATA_PATH and NUM_WORKFLOW
