@@ -1,4 +1,4 @@
-#20k Single Sample Workflow
+## 20k Single Sample Workflow
 To submit, monitor, and receive output from these workflows, follow these steps:
 1.	Clone the repository
 To clone the repository, run these commands:
