@@ -11,7 +11,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-
 export http_proxy=
 export https_proxy=
 export  no_proxy="localhost"
@@ -19,10 +18,12 @@ CROMWELL_HOST=$HOSTNAME
 
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 GENOMICS_PATH="/mnt/lustre/genomics"
-TOOLS_PATH="/mnt/lustre/genomics/tools"
+
+#specify the path to tools directory
+TOOLS_PATH="/genomics/genomics/tools"
 
 #specify the path to data download directory
-DATA_PATH="/mnt/lustre/genomics/data"
+DATA_PATH="/genomics/genomics/data"
 
 #Enter the number of workflow for throughput run
 NUM_WORKFLOW=64
