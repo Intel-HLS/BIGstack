@@ -14,13 +14,16 @@
 ###########Editing JSON file#############
 source ./configure
 
-datapath=${DATA_PATH}
-toolspath=${TOOLS_PATH}
+#datapath is the existing path specified in the PairedSingleSampleWf_optimized.inputs.20k.json.Do not edit this path
+datapath=/mnt/lustre/genomics/data
+#toolspath is the existing path specified in the PairedSingleSampleWf_optimized.inputs.20k.json.Do not edit this path
+toolspath=/mnt/lustre/genomics/tools
+
 mkdir -p  $BASEDIR/JSON
 cd $BASEDIR/JSON
-#edit the path to dataset
 cp $BASEDIR/PairedSingleSampleWf_optimized.inputs.20k.json $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
-newdatapath=${GENOMICS_PATH}/data
+
+newdatapath=${DATA_PATH}
 newtoolspath=${TOOLS_PATH}
 sed -i "s%$datapath%$newdatapath%g" $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
 sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
