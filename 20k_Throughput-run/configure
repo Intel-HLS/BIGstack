@@ -19,13 +19,14 @@ CROMWELL_HOST=$HOSTNAME
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 GENOMICS_PATH="/mnt/lustre/genomics"
 
-#specify the path to tools directory
-TOOLS_PATH="/genomics/genomics/tools"
+#specify the path to tools directory.By default,script expects tools to be in the following path
+TOOLS_PATH="$GENOMICS_PATH/tools"
 
-#specify the path to data download directory
-DATA_PATH="/genomics/genomics/data"
+#specify the path to data download directory.By default, data is downloaded to current folder
+DATA_PATH="$BASEDIR/data"
 
 #Enter the number of workflow for throughput run
 NUM_WORKFLOW=64
+
 
 
