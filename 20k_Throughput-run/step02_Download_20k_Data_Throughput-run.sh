@@ -11,11 +11,17 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-source ./configure 
+source ./configure
 limit=$NUM_WORKFLOW
 if [ -d $DATA_PATH/genomics-public-data ]
-	then
-		echo Using data existing in the path $DATA_PATH/genomics-public-data
+        then
+                echo Using data existing in the path $DATA_PATH/genomics-public-data
+                echo Replicating 20k Dataset for 20k-Throughput-run
+                for i in $(seq $limit)
+                do
+                cp -r $DATA_PATH/genomics-public-data $DATA_PATH/genomics-public-data$i
+                done
+
 else
 echo "Downloading 20k Dataset for Throughput-run"
 GCP_PATH="https://storage.googleapis.com"
@@ -91,9 +97,3 @@ echo "Data for tutorial downloaded successfully"
 
 sleep 1
 fi
-echo Replicating 20k Dataset for 20k-Throughput-run
-
-for i in $(seq $limit)
-do
-	cp -r $DATA_PATH/genomics-public-data $DATA_PATH/genomics-public-data$i 
-done
