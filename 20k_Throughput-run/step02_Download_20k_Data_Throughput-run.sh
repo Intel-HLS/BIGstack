@@ -9,17 +9,18 @@
 # See the License for the specific language governing permissions and # limitations under the License.
 #
 # SPDX-License-Identifier: Apache-2.0
-#
 
+echo "Downloading Reference Data (if it doesn't already exist)"
+GCP_PATH="https://storage.googleapis.com"
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#specify the path to data download directory.By default, data is downloaded to current folder
 DATA_PATH="$BASEDIR/data"
-
 if [ -d $DATA_PATH/genomics-public-data ]
         then
-                echo Using data existing in the path $DATA_PATH/genomics-public-data
-                echo Replicating 20k Dataset for 20k-Throughput-run
                 source configure
                 limit=$NUM_WORKFLOW
+                echo Using data existing in the path $DATA_PATH/genomics-public-data
+                echo Replicating 20k Dataset for 20k-Throughput-run
                 for i in $(seq $limit)
                 do
                 cp -r $DATA_PATH/genomics-public-data $DATA_PATH/genomics-public-data$i
