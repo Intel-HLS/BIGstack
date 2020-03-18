@@ -49,12 +49,6 @@ wget -nc -v -P $DATA_PATH/genomics-public-data/resources/broad/hg38/v0 \
 $GCP_PATH/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta.64.ann
 wget -nc -v -P $DATA_PATH/genomics-public-data/resources/broad/hg38/v0 \
 $GCP_PATH/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta.64.pac
-wget -nc -v -P $DATA_PATH/genomics-public-data/resources/broad/hg38/v0 \
-$GCP_PATH/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.contam.UD
-wget -nc -v -P $DATA_PATH/genomics-public-data/resources/broad/hg38/v0 \
-$GCP_PATH/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.contam.bed
-wget -nc -v -P $DATA_PATH/genomics-public-data/resources/broad/hg38/v0 \
-$GCP_PATH/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.contam.mu
 echo "Done downloading reference files"
 sleep 1
 echo "Downloading the resource files"
@@ -77,10 +71,6 @@ echo "Downloading the intervals files"
 #Interval Files
 wget -nc -v -P $DATA_PATH/genomics-public-data/resources/broad/hg38/v0 \
 $GCP_PATH/genomics-public-data/resources/broad/hg38/v0/wgs_calling_regions.hg38.interval_list
-wget -nc -v -P $DATA_PATH/genomics-public-data/resources/broad/hg38/v0 \
-$GCP_PATH/genomics-public-data/resources/broad/hg38/v0/wgs_coverage_regions.hg38.interval_list
-wget -nc -v -P $DATA_PATH/genomics-public-data/resources/broad/hg38/v0 \
-$GCP_PATH/genomics-public-data/resources/broad/hg38/v0/wgs_coverage_regions.hg38.interval_list
 echo "Done downloading interval files"
 sleep 1
 echo "Downloading 20k Test Data for Single Sample Workflow"
