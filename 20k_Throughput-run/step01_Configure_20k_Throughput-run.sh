@@ -25,6 +25,10 @@ cp $BASEDIR/PairedSingleSampleWf_optimized.inputs.20k.json $BASEDIR/JSON/PairedS
 
 newdatapath=${DATA_PATH}
 newtoolspath=${TOOLS_PATH}
+
+#pointing the correct data path to wdl
+sed -i "s%\/mnt\/lustre\/genomics\/data%$newdatapath%g" $BASEDIR/PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k
+
 sed -i "s%$datapath%$newdatapath%g" $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
 sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
 limit=$NUM_WORKFLOW
