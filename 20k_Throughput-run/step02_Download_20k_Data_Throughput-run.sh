@@ -15,18 +15,6 @@ GCP_PATH="https://storage.googleapis.com"
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 #specify the path to data download directory.By default, data is downloaded to current folder
 DATA_PATH="$BASEDIR/data"
-if [ -d $DATA_PATH/genomics-public-data ]
-        then
-                source configure
-                limit=$NUM_WORKFLOW
-                echo Using data existing in the path $DATA_PATH/genomics-public-data
-                echo Replicating 20k Dataset for 20k-Throughput-run
-                for i in $(seq $limit)
-                do
-                cp -r $DATA_PATH/genomics-public-data $DATA_PATH/genomics-public-data$i
-                done
-
-else
 mkdir -p $DATA_PATH/genomics-public-data/resources/broad/hg38/v0
 cd $DATA_PATH/genomics-public-data/resources/broad/hg38/v0
 echo "Downloading the reference files"
@@ -86,4 +74,12 @@ chmod -R 777 $DATA_PATH/genomics-public-data/test-data/dna/wgs/hiseq2500/NA12878
 echo "Data for tutorial downloaded successfully"
 
 sleep 1
-fi
+source $BASEDIR/configure
+limit=$NUM_WORKFLOW
+
+echo Replicating 20k Dataset for 20k-Throughput-run
+for i in $(seq $limit)
+do
+        cp -r $DATA_PATH/genomics-public-data $DATA_PATH/genomics-public-data$i
+done
+
