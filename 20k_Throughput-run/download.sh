@@ -1,0 +1,4 @@
+wget https://github.com/broadinstitute/warp/releases/download/WholeGenomeGermlineSingleSample_develop/WholeGenomeGermlineSingleSample_develop.wdl
+wget https://github.com/broadinstitute/warp/releases/download/WholeGenomeGermlineSingleSample_develop/WholeGenomeGermlineSingleSample_develop.zip
+wget https://github.com/broadinstitute/warp/releases/download/WholeGenomeGermlineSingleSample_develop/WholeGenomeGermlineSingleSample_develop.options.json
+
