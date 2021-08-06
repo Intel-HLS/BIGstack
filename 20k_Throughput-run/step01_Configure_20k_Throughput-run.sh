@@ -14,32 +14,30 @@
 ###########Editing JSON file#############
 source ./configure
 
-#datapath is the existing path specified in the PairedSingleSampleWf_optimized.inputs.20k.json.Do not edit this path
+#datapath is the existing path specified in the WholeGenomeGermlineSingleSample_20k.json.Do not edit this path
 datapath=/mnt/lustre/genomics/data
-#toolspath is the existing path specified in the PairedSingleSampleWf_optimized.inputs.20k.json.Do not edit this path
+#toolspath is the existing path specified in the WholeGenomeGermlineSingleSample_20k.json.Do not edit this path
 toolspath=/mnt/lustre/genomics/tools
 
 mkdir -p  $BASEDIR/JSON
 cd $BASEDIR/JSON
-cp $BASEDIR/PairedSingleSampleWf_optimized.inputs.20k.json $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
+cp $BASEDIR/WholeGenomeGermlineSingleSample_20k.json $BASEDIR/JSON/WholeGenomeGermlineSingleSample_20k.json
 
 newdatapath=${DATA_PATH}
 newtoolspath=${TOOLS_PATH}
 
 #pointing the correct data path to wdl
-sed -i "s%\/mnt\/lustre\/genomics\/data%$newdatapath%g" $BASEDIR/PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k
+sed -i "s%$datapath%$newdatapath%g" $BASEDIR/JSON/WholeGenomeGermlineSingleSample_20k.json
+sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/JSON/WholeGenomeGermlineSingleSample_20k.json
 
-sed -i "s%$datapath%$newdatapath%g" $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
-sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs.20k.json
 limit=$NUM_WORKFLOW
 
 for i in $(seq $limit)
 do
 
-   cp PairedSingleSampleWf_optimized.inputs.20k.json PairedSingleSampleWf_optimized.inputs${i}.20k.json
-   sed -i "s@genomics-public-data@genomics-public-data$i@g" PairedSingleSampleWf_optimized.inputs${i}.20k.json
+   cp WholeGenomeGermlineSingleSample_20k.json WholeGenomeGermlineSingleSample_20k_${i}.json
+   sed -i "s@genomics-public-data@genomics-public-data$i@g" WholeGenomeGermlineSingleSample_20k_${i}.json
 done
 
 ############Editing WDL file##################
 #user may either edit the tool versions in the WDL file or create symlinks to each tool and add the symlink to the WDL
-
