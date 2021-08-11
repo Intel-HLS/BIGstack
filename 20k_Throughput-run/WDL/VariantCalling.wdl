@@ -174,8 +174,8 @@ task MergeBamouts {
   Int disk_size = ceil(size(bams, "GiB") * 2) + 10
 
   command {
-    /mnt/lustre/genomics/tools/samtools-1.9/samtools merge ~{output_base_name}.bam ~{sep=" " bams}
-    /mnt/lustre/genomics/tools/samtools-1.9/samtools index ~{output_base_name}.bam
+    /mnt/lustre/genomics/tools/samtools/samtools merge ~{output_base_name}.bam ~{sep=" " bams}
+    /mnt/lustre/genomics/tools/samtools/samtools index ~{output_base_name}.bam
     mv ~{output_base_name}.bam.bai ~{output_base_name}.bai
   }
 

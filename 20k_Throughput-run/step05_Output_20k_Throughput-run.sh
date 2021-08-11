@@ -19,11 +19,11 @@ count=`curl -sGET "$CROMWELL_HOST:8000/api/workflows/v1/query?start=$start_date&
 finish=`curl -sGET "$CROMWELL_HOST:8000/api/workflows/v1/query?start=$start_date&status=Succeeded&includeSubworkflows=false" | jq '.totalResultsCount'`
 failed=`curl -sGET "$CROMWELL_HOST:8000/api/workflows/v1/query?start=$start_date&status=Failed&includeSubworkflows=false" | jq '.totalResultsCount'`
 echo running: $count  finished: $finish  failed:  $failed
-#grep suceeded runs to cromwell-save to calculate elapse time:
+#grep suceeded runs to cromwell-times to calculate elapse time:
 
-sh step04_Cromwell_Monitor_20k_Throughput-run.sh | grep WholeGenomeGermlineSingleSample | sort>cromwell-save
-s=`cat cromwell-save | cut -d '|' -f4 | sort | head -1`
-e=`cat cromwell-save | cut -d '|' -f5 | sort | tail -n 1 `
+sh step04_Cromwell_Monitor_20k_Throughput-run.sh | grep WholeGenomeGermlineSingleSample | sort>cromwell-times
+s=`cat cromwell-times | cut -d '|' -f4 | sort | head -1`
+e=`cat cromwell-times | cut -d '|' -f5 | sort | tail -n 1 `
 
 if [ $count -gt 0 ]
 then

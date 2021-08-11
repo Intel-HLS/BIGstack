@@ -603,7 +603,7 @@ task ValidateVCF {
   Int disk_size = ceil(size(input_vcf, "GiB") + size(dbsnp_vcf, "GiB") + ref_size) + 20
 
   command {
-    /mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options "-Xms6000m -Xmx6900m" \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms6000m -Xmx6900m" \
       ValidateVariants \
       -V ~{input_vcf} \
       -R ~{ref_fasta} \

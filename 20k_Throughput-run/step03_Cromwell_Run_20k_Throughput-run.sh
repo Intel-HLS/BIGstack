@@ -38,7 +38,7 @@ echo Start time is `date`  : `date +"%H:%M:%S"`
 for i in $(seq $limit)
 do
         echo $i
-        curl -vXPOST http://$CROMWELL_HOST:8000/api/workflows/v1 -F workflowSource=@${WDL} -F workflowInputs=@${JSON} -F workflowDependencies=@$BASEDIR/warp.zip > 20k_submission_response.txt
+        curl -vXPOST http://$CROMWELL_HOST:8000/api/workflows/v1 -F workflowSource=@${WDL} -F workflowInputs=@${JSON} -F workflowDependencies=@$BASEDIR/WDL/warp.zip > 20k_submission_response.txt
 	cat 20k_submission_response.txt |  cut -d '"' -f4 >"20k_WF_ID-"$DATE_WITH_TIME""/20k_WF_ID_${i}.txt
 	cp "20k_WF_ID-"$DATE_WITH_TIME""/20k_WF_ID_* 20k_WF_ID
 done

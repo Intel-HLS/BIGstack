@@ -72,13 +72,13 @@ task SortSamSpark {
   command {
     set -e
 
-    /mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options "-Dsamjdk.compression_level=~{compression_level} -Xms100g -Xmx100g" \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Dsamjdk.compression_level=~{compression_level} -Xms100g -Xmx100g" \
       SortSamSpark \
       -I ~{input_bam} \
       -O ~{output_bam_basename}.bam \
       -- --conf spark.local.dir=. --spark-master 'local[16]' --conf 'spark.kryo.referenceTracking=false'
 
-    /mnt/lustre/genomics/tools/samtools-1.9/samtools index ~{output_bam_basename}.bam ~{output_bam_basename}.bai
+    /mnt/lustre/genomics/tools/samtools/samtools index ~{output_bam_basename}.bam ~{output_bam_basename}.bai
   }
   runtime {
     #docker: gatk_docker
@@ -182,8 +182,8 @@ task MarkDuplicatesSpark {
   # MarkDuplicatesSpark requires PAPIv2
   command <<<
     set -e
-    export GATK_LOCAL_JAR=/mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk-package-4.1.4.0-local.jar
-    /mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options "-Dsamjdk.compression_level=~{compression_level} -Xmx~{java_memory_size}g" \
+    export GATK_LOCAL_JAR=/root/gatk.jar
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Dsamjdk.compression_level=~{compression_level} -Xmx~{java_memory_size}g" \
       MarkDuplicatesSpark \
       --input ~{sep=' --input ' input_bams} \
       --output ~{output_bam_location} \
@@ -241,7 +241,7 @@ task BaseRecalibrator {
   }
 
   command {
-    /mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -XX:+PrintFlagsFinal \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -XX:+PrintFlagsFinal \
       -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails \
       -Xloggc:gc_log.log -Xms5g -Xmx6g " \
       BaseRecalibrator \
@@ -301,7 +301,7 @@ task ApplyBQSR {
   }
 
   command {
-    /mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options "-XX:+PrintFlagsFinal -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-XX:+PrintFlagsFinal -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps \
       -XX:+PrintGCDetails -Xloggc:gc_log.log \
       -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Dsamjdk.compression_level=~{compression_level} -Xms3000m -Xms~{memory_size}m " \
       ApplyBQSR \
@@ -343,7 +343,7 @@ task GatherBqsrReports {
   }
 
   command {
-    /mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options "-Xms3000m -Xmx3400m" \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms3000m -Xmx3400m" \
       GatherBQSRReports \
       -I ~{sep=' -I ' input_bqsr_reports} \
       -O ~{output_report_filename}

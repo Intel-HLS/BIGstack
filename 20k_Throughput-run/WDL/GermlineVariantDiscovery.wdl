@@ -44,7 +44,7 @@ task HaplotypeCaller_GATK35_GVCF {
   # Using PrintReads is a temporary solution until we update HaploypeCaller to use GATK4. Once that is done,
   # HaplotypeCaller can stream the required intervals directly from the cloud.
   command {
-    /usr/gitc/gatk4//mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options "-Xms2g" \
+    /usr/gitc/gatk4//mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms2g" \
       PrintReads \
       -I ~{input_bam} \
       --interval-padding 500 \
@@ -111,7 +111,7 @@ task HaplotypeCaller_GATK4_VCF {
 
   command <<<
     set -e
-    /mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options "-Xms6000m -Xmx6400m  -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms6000m -Xmx6400m  -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
       HaplotypeCaller \
       -R ~{ref_fasta} \
       -I ~{input_bam} \
@@ -190,7 +190,7 @@ task HardFilterVcf {
   String output_vcf_name = vcf_basename + ".filtered.vcf.gz"
 
   command {
-     /mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options "-Xms3000m -Xmx3000m" \
+     /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms3000m -Xmx3000m" \
       VariantFiltration \
       -V ~{input_vcf} \
       -L ~{interval_list} \
@@ -238,7 +238,7 @@ task CNNScoreVariants {
   String tensor_type = if defined(bamout) then "read-tensor" else "reference"
 
   command {
-     /mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options -Xmx10g CNNScoreVariants \
+     /mnt/lustre/genomics/tools/gatk/gatk --java-options -Xmx10g CNNScoreVariants \
        -V ~{input_vcf} \
        -R ~{ref_fasta} \
        -O ~{output_vcf} \
@@ -285,7 +285,7 @@ task FilterVariantTranches {
 
   command {
 
-    /mnt/lustre/genomics/tools/gatk-4.2.1.0/gatk --java-options -Xmx6g FilterVariantTranches \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options -Xmx6g FilterVariantTranches \
       -V ~{input_vcf} \
       -O ~{vcf_basename}.filtered.vcf.gz \
       ~{sep=" " prefix("--snp-tranche ", snp_tranches)} \

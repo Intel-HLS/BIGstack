@@ -29,53 +29,18 @@ DATA_PATH="$BASEDIR/data"
 NUM_WORKFLOW=64
 
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-echo $BASEDIR
 
 # sudo yum install -y R
 # sudo yum install -y jq
 # Create generic symlinks for tools e.g. :
 # for tool in bwa samtools gatk; do export tool_version=`ls $GENOMICS_PATH/tools | grep ${tool}- | head -n1` && echo ${tool_version} && ln -sfn $GENOMICS_PATH/tools/$tool_version $GENOMICS_PATH/tools/$tool; done;
 
+FILE="$BASEDIR/WDL/warp.zip"
 
-# Updating WDL for Onprem benchmarks
-
-echo "Commenting variables"
-#sed -i 's|Int disk_size|#Int disk_size|g' $BASEDIR/WDL/*.wdl
-sed -i  's|Int pre|#Int pre|g' $BASEDIR/WDL/*.wdl
-sed -i 's|Int agg_preemptible_|#Int agg_preemptible_|g'  $BASEDIR/WDL/*.wdl
-sed -i 's|preemptible:|#preemptible:|g' $BASEDIR/WDL/*.wdl
-sed -i 's|disks:|#disks:|g' $BASEDIR/WDL/*.wdl
-sed -i 's| preemptible_tries =| #preemptible_tries =|g' $BASEDIR/WDL/*.wdl
-sed -i 's|agg_preemptible_tries =|#agg_preemptible_tries =|g' $BASEDIR/WDL/*.wdl
-
-echo "Changing tool_path"
-sed -i 's|gatk --java|${tool_path}/gatk/gatk --java|g' $BASEDIR/WDL/*.wdl
-sed -i 's|use_gatk3_haplotype_caller = true|use_gatk3_haplotype_caller = false|g' $BASEDIR/WDL/*.wdl
-sed -i 's|samtools |${tool_path}/samtools/samtools |g' $BASEDIR/WDL/*.wdl
-sed -i 's|seq_cache_populate\.pl |${tool_path}/samtools/misc/seq_cache_populate\.pl |g' $BASEDIR/WDL/*.wdl
-sed -i 's|/usr/gitc/VerifyBamID|${tool_path}/VerifyBamID/bin/VerifyBamID |g' $BASEDIR/WDL/BamProcessing.wdl
-
-sed -i 's|/usr/gitc/bwa|${tool_path}/bwa/bwa|g' $BASEDIR/WDL/*.wdl
-sed -i 's|/usr/gitc/~{bwa_commandline}|${tool_path}/bwa/~{bwa_commandline}|g' $BASEDIR/WDL/*.wdl
-
-echo "Changing picard"
-sed -i  's|/usr/picard/picard.jar|${tool_path}/picard.jar|g' $BASEDIR/WDL/*.wdl
-sed -i  's|/usr/gitc/picard-private.jar|${tool_path}/picard.jar|g' $BASEDIR/WDL/*.wdl
-sed -i  's|/usr/gitc/picard.jar|${tool_path}/picard.jar|g' $BASEDIR/WDL/*.wdl
-
-echo "Changing docker gatk"
-sed -i 's|docker:|#docker:|g' $BASEDIR/WDL/*.wdl
-sed -i  's|String gatk_docker|#String gatk_docker|g' $BASEDIR/WDL/*.wdl
-sed -i 's|bootDiskSizeGb:|#bootDiskSizeGb:|g' $BASEDIR/WDL/*.wdl
-
-# remove disk_size variable from germline
-sed -i '283,288d' $BASEDIR/WDL/GermlineVariantDiscovery.wdl
-
-echo "Replace tool_path"
-sed -i 's|\${tool_path}|'$GENOMICS_PATH'/tools|g' $BASEDIR/WDL/*.wdl
-sed -i '44i \    String tool_path = "'${GENOMICS_PATH}'/tools"'  $BASEDIR/WDL/WholeGenomeGermlineSingleSample_*.wdl
-
-echo " Create import WDLs zip"
+if [[ ! -f "$FILE" ]]
+then
+    echo "Creating "$FILE" "
 zip -j  $BASEDIR/WDL/warp.zip $BASEDIR/WDL/*.wdl
 
+fi
 

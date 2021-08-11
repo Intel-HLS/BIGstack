@@ -135,17 +135,17 @@ task ConvertToCram {
     set -e
     set -o pipefail
 
-    /mnt/lustre/genomics/tools/samtools-1.9/samtools view -C -T ~{ref_fasta} ~{input_bam} | \
+    /mnt/lustre/genomics/tools/samtools/samtools view -C -T ~{ref_fasta} ~{input_bam} | \
     tee ~{output_basename}.cram | \
     md5sum | awk '{print $1}' > ~{output_basename}.cram.md5
 
     # Create REF_CACHE. Used when indexing a CRAM
     #seq_cache_populate.pl -root ./ref/cache ~{ref_fasta}
-    /mnt/lustre/genomics/tools/samtools-1.9/misc/seq_cache_populate.pl -root ./ref/cache ~{ref_fasta}
+    /mnt/lustre/genomics/tools/samtools/misc/seq_cache_populate.pl -root ./ref/cache ~{ref_fasta}
     export REF_PATH=:
     export REF_CACHE=./ref/cache/%2s/%2s/%s
 
-    /mnt/lustre/genomics/tools/samtools-1.9/samtools index ~{output_basename}.cram
+    /mnt/lustre/genomics/tools/samtools/samtools index ~{output_basename}.cram
   >>>
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"
@@ -175,9 +175,9 @@ task ConvertToBam {
     set -e
     set -o pipefail
 
-    /mnt/lustre/genomics/tools/samtools-1.9/samtools view -b -o ~{output_basename}.bam -T ~{ref_fasta} ~{input_cram}
+    /mnt/lustre/genomics/tools/samtools/samtools view -b -o ~{output_basename}.bam -T ~{ref_fasta} ~{input_cram}
 
-    /mnt/lustre/genomics/tools/samtools-1.9/samtools index ~{output_basename}.bam
+    /mnt/lustre/genomics/tools/samtools/samtools index ~{output_basename}.bam
   >>>
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"

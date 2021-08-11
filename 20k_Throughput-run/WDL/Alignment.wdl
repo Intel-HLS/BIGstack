@@ -139,7 +139,7 @@ task SamSplitter {
     set -e
     mkdir output_dir
 
-    total_reads=$(/mnt/lustre/genomics/tools/samtools-1.9/samtools view -c ~{input_bam})
+    total_reads=$(/mnt/lustre/genomics/tools/samtools/samtools view -c ~{input_bam})
 
     java -Dsamjdk.compression_level=~{compression_level} -Xms3000m -Xmx3600m -jar /mnt/lustre/genomics/tools/picard.jar SplitSamByNumberOfReads \
       INPUT=~{input_bam} \
