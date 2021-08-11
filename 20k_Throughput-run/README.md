@@ -57,10 +57,16 @@ This will output the Elapse time and average Markduplicates elapse time.
 
 ## Install dependencies for Step 3 and 4 :
  sudo yum install R -y
+
  sudo yum install jq -y
+
  Make sure python2 and python3 are installed and symlinks are created.
+
 ## Create generic symlinks for tools to latest/desired version - By default tool paths in wdl files uses generic symlinks :
  for tool in bwa samtools gatk;
+
  do 
+
    export tool_version=`ls $GENOMICS_PATH/tools | grep ${tool}- | head -n1` && echo ${tool_version} && ln -sfn $GENOMICS_PATH/tools/$tool_version $GENOMICS_PATH/tools/$tool; 
+
  done;
