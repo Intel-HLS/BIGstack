@@ -4,7 +4,7 @@ To submit, monitor, and receive output from these workflows, follow these steps:
 ## 1.	Clone the repository
 To clone the repository, run these commands:
 
-     git clone https://github.com/BIGstack.git
+     git clone -b nestedwdl-warp2.3.3 https://github.com/priyankasebastian/BIGstack.git
      
      cd 20k_Throughput-run
   
