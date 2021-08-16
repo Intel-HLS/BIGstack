@@ -27,7 +27,7 @@ Edit the configure file to set up the various paths to work directories:GENOMICS
 
 	./configure
 
-## 3.	Configure and the JSON files
+## 3.	Configure JSON file
 
 	./step01_Configure_20k_Throughput-run.sh
 
