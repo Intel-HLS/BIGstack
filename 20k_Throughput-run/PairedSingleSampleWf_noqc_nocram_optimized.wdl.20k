@@ -1007,8 +1007,13 @@ task MergeVCFs {
       export GATK_LOCAL_JAR=${tool_path}/gatk-jar && \
       ${tool_path}/gatk/gatk --java-options -Xmx${java_heap_memory_initial} \
       MergeVcfs \
+<<<<<<< HEAD
       --INPUT ${sep=' --INPUT ' input_vcfs} \
       --OUTPUT ${output_vcf_name}
+=======
+      -I ${sep=' --INPUT ' input_vcfs} \
+      -O ${output_vcf_name}
+>>>>>>> 1fc4b410775153d6c1530867ee2d7ed626bd5602
   >>>
   runtime {
     memory: memory
