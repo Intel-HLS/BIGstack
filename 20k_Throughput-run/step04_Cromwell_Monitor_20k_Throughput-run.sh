@@ -13,11 +13,17 @@
 
 source ./configure
 
-curl localhost:8000/api/workflows/v1/query 2>/dev/null | json_pp>cromwell_stop
+curl -s $CROMWELL_HOST:8000/api/workflows/v1/query 2>/dev/null | json_pp>cromwell_stop
 
-diff -urN cromwell-monitor/cromwell_start cromwell_stop > cromwell_diff
-count=`cat cromwell_diff | grep  + | grep status | grep Running | wc -l`
-finish=`cat cromwell_diff | grep + | grep status | grep Succeeded | wc -l`
-failed=`cat cromwell_diff | grep + | grep status | grep Failed| wc -l`
+start_date=`cat cromwell_start_date`
+count=`curl -sGET "$CROMWELL_HOST:8000/api/workflows/v1/query?start=$start_date&status=Running&includeSubworkflows=false" | jq '.totalResultsCount'`
+finish=`curl -sGET "$CROMWELL_HOST:8000/api/workflows/v1/query?start=$start_date&status=Succeeded&includeSubworkflows=false" | jq '.totalResultsCount'`
+failed=`curl -sGET "$CROMWELL_HOST:8000/api/workflows/v1/query?start=$start_date&status=Failed&includeSubworkflows=false" | jq '.totalResultsCount'`
 echo running: $count  finished: $finish  failed:  $failed
 
+echo "-----------------------------"
+echo ' 	          workflow_id         |  status   |	     start           |	  	 end            |  	    name 	| 	parent_workflow_id' 
+for WFID in `cat $BASEDIR/20k_WF_ID/*`; do 
+	echo "-----------------------------"
+	curl -sXGET $CROMWELL_HOST:8000/api/workflows/v1/query?status={Submitted,Running,Aborting,Failed,Succeeded,Aborted} | jq ' .results | [.|= sort_by(.start)] | .[] | .[] | ( .id + " | "  + .status + " | " + .start + " | "+ .end +" | " + .name + " | " + .rootWorkflowId )' | grep $WFID  | tr '"' '|'
+done;
