@@ -13,8 +13,8 @@
 
 source ./configure
 
-WDL=PairedSingleSampleWf_noqc_nocram_optimized.wdl.20k
-JSON=$BASEDIR/JSON/PairedSingleSampleWf_optimized.inputs
+WDL=$BASEDIR/WholeGenomeGermlineSingleSample.wdl
+JSON=$BASEDIR/JSON/WholeGenomeGermlineSingleSample_20k.json
 
 limit=$NUM_WORKFLOW
 
@@ -31,14 +31,14 @@ mkdir 20k_WF_ID
 curl localhost:8000/api/workflows/v1/query 2>/dev/null | json_pp>"cromwell-status-"$DATE_WITH_TIME""/cromwell_start
 cp "cromwell-status-"$DATE_WITH_TIME""/cromwell_start cromwell-monitor
 
-
+date -u +"%Y-%m-%dT%H:%M:%S.000Z"> cromwell_start_date
 echo Start time is `date`  : `date +"%H:%M:%S"`
 
 
 for i in $(seq $limit)
 do
         echo $i
-        curl -vXPOST http://$CROMWELL_HOST:8000/api/workflows/v1 -F workflowSource=@${WDL} -F workflowInputs=@${JSON}${i}.20k.json > 20k_submission_response.txt
+        curl -vXPOST http://$CROMWELL_HOST:8000/api/workflows/v1 -F workflowSource=@${WDL} -F workflowInputs=@${JSON} -F workflowDependencies=@$BASEDIR/WDL/warp.zip > 20k_submission_response.txt
 	cat 20k_submission_response.txt |  cut -d '"' -f4 >"20k_WF_ID-"$DATE_WITH_TIME""/20k_WF_ID_${i}.txt
 	cp "20k_WF_ID-"$DATE_WITH_TIME""/20k_WF_ID_* 20k_WF_ID
 done

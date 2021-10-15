@@ -28,5 +28,19 @@ DATA_PATH="$BASEDIR/data"
 #Enter the number of workflow for throughput run
 NUM_WORKFLOW=64
 
+BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# sudo yum install -y R
+# sudo yum install -y jq
+# Create generic symlinks for tools e.g. :
+# for tool in bwa samtools gatk; do export tool_version=`ls $GENOMICS_PATH/tools | grep ${tool}- | head -n1` && echo ${tool_version} && ln -sfn $GENOMICS_PATH/tools/$tool_version $GENOMICS_PATH/tools/$tool; done;
+
+FILE="$BASEDIR/WDL/warp.zip"
+
+if [[ ! -f "$FILE" ]]
+then
+    echo "Creating "$FILE" "
+zip -j  $BASEDIR/WDL/warp.zip $BASEDIR/WDL/*.wdl
+
+fi
 

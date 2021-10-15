@@ -59,6 +59,26 @@ echo "Downloading the intervals files"
 #Interval Files
 wget -nc -v -P $DATA_PATH/genomics-public-data/resources/broad/hg38/v0 \
 $GCP_PATH/genomics-public-data/resources/broad/hg38/v0/wgs_calling_regions.hg38.interval_list
+wget -nc -v -P $DATA_PATH/genomics-public-data/resources/broad/hg38/v0 \
+$GCP_PATH/gcp-public-data--broad-references/hg38/v0/wgs_evaluation_regions.hg38.interval_list
+
+#Alternatively  gsutil cp -r gs://genomics-public-data/references/hg38/v0/* .
+ wget -nc -v -P $DATA_PATH/genomics-public-data/references/broad/hg38/v0/ \
+$GCP_PATH/genomics-public-data/references/hg38/v0/wgs_coverage_regions.hg38.interval_list
+ wget -nc -v -P $DATA_PATH/genomics-public-data/references/broad/hg38/v0/ \
+$GCP_PATH/genomics-public-data/references/hg38/v0/Homo_sapiens_assembly38.haplotype_database.txt
+ wget -nc -v -P $DATA_PATH/genomics-public-data/references/broad/hg38/v0/ \
+$GCP_PATH/genomics-public-data/references/hg38/v0/Homo_sapiens_assembly38.contam.UD
+ wget -nc -v -P $DATA_PATH/genomics-public-data/references/broad/hg38/v0/ \
+$GCP_PATH/genomics-public-data/references/hg38/v0/Homo_sapiens_assembly38.contam.mu
+ wget -nc -v -P $DATA_PATH/genomics-public-data/references/broad/hg38/v0/ \
+$GCP_PATH/genomics-public-data/references/hg38/v0/Homo_sapiens_assembly38.contam.bed
+# Need to find following reference 
+# wget -nc -v -P $DATA_PATH/genomics-public-data/references/broad/hg38/v0/ \
+#$GCP_PATH/genomics-public-data/references/hg38/v0/hg38_wgs_scattered_calling_intervals.txt
+# wget -nc -v -P $DATA_PATH/genomics-public-data/references/broad/hg38/v0/ \
+#$GCP_PATH/genomics-public-data/references/hg38/v0/NA12878.hg38.reference.fingerprint.vcf
+
 echo "Done downloading interval files"
 sleep 1
 echo "Downloading 20k Test Data for Single Sample Workflow"
@@ -72,14 +92,4 @@ wget -nc -v -P $DATA_PATH/genomics-public-data/test-data/dna/wgs/hiseq2500/NA128
 $GCP_PATH/genomics-public-data/test-data/dna/wgs/hiseq2500/NA12878/H06JUADXX130110.1.ATCACGAT.20k_reads.bam
 chmod -R 777 $DATA_PATH/genomics-public-data/test-data/dna/wgs/hiseq2500/NA12878
 echo "Data for tutorial downloaded successfully"
-
-sleep 1
-source $BASEDIR/configure
-limit=$NUM_WORKFLOW
-
-echo Replicating 20k Dataset for 20k-Throughput-run
-for i in $(seq $limit)
-do
-        cp -r $DATA_PATH/genomics-public-data $DATA_PATH/genomics-public-data$i
-done
 
