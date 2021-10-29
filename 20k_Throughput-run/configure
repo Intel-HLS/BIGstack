@@ -37,10 +37,5 @@ BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 FILE="$BASEDIR/WDL/warp.zip"
 
-if [[ ! -f "$FILE" ]]
-then
-    echo "Creating "$FILE" "
-zip -j  $BASEDIR/WDL/warp.zip $BASEDIR/WDL/*.wdl
-
-fi
-
+echo "Creating zip file for WDLS "$FILE" "
+zip -r  $BASEDIR/WDL/warp.zip $BASEDIR/WDL/*.wdl
