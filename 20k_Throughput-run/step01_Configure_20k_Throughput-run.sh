@@ -32,3 +32,8 @@ sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/JSON/WholeGenomeGermlineSingleSam
 
 sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/WDL/WholeGenomeGermlineSingleSample.wdl
 sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/WDL/*.wdl
+
+FILE="$BASEDIR/WDL/warp.zip"
+
+echo "Creating zip file for WDLS "$FILE" "
+zip -r  $BASEDIR/WDL/warp.zip $BASEDIR/WDL/*.wdl
