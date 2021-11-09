@@ -29,3 +29,6 @@ newtoolspath=${TOOLS_PATH}
 #pointing the correct data path to wdl
 sed -i "s%$datapath%$newdatapath%g" $BASEDIR/JSON/WholeGenomeGermlineSingleSample_20k.json
 sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/JSON/WholeGenomeGermlineSingleSample_20k.json
+
+sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/WDL/WholeGenomeGermlineSingleSample.wdl
+sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/WDL/*.wdl
