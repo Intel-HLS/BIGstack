@@ -36,4 +36,5 @@ sed -i "s%$toolspath%$newtoolspath%g" $BASEDIR/WDL/*.wdl
 FILE="$BASEDIR/WDL/warp.zip"
 
 echo "Creating zip file for WDLS "$FILE" "
-zip -r  $BASEDIR/WDL/warp.zip $BASEDIR/WDL/*.wdl
+zip -j  $BASEDIR/WDL/warp.zip $BASEDIR/WDL/*.wdl
+
