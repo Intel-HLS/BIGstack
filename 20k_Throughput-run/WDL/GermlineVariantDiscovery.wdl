@@ -25,7 +25,7 @@ task HaplotypeCaller_GATK35_GVCF {
     File ref_fasta
     File ref_fasta_index
     Float? contamination
-    Int preemptible_tries
+    #Int preemptible_tries
     Int hc_scatter
   }
 
@@ -44,7 +44,7 @@ task HaplotypeCaller_GATK35_GVCF {
   # Using PrintReads is a temporary solution until we update HaploypeCaller to use GATK4. Once that is done,
   # HaplotypeCaller can stream the required intervals directly from the cloud.
   command {
-    /usr/gitc/gatk4//mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options "-Xms2g" \
+    /usr/gitc/gatk4//mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms2g" \
       PrintReads \
       -I ~{input_bam} \
       --interval-padding 500 \
@@ -67,10 +67,10 @@ task HaplotypeCaller_GATK35_GVCF {
   }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"
-    preemptible: preemptible_tries
+    #preemptible: preemptible_tries
     memory: "10 GiB"
     cpu: "2"
-    disks: "local-disk " + disk_size + " HDD"
+    #disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File output_gvcf = "~{gvcf_basename}.vcf.gz"
@@ -90,9 +90,9 @@ task HaplotypeCaller_GATK4_VCF {
     Float? contamination
     Boolean make_gvcf
     Boolean make_bamout
-    Int preemptible_tries
+    #Int preemptible_tries
     Int hc_scatter
-    String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
+    #String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
   }
 
   String output_suffix = if make_gvcf then ".g.vcf.gz" else ".vcf.gz"
@@ -111,7 +111,7 @@ task HaplotypeCaller_GATK4_VCF {
 
   command <<<
     set -e
-    /mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options "-Xms6000m -Xmx6400m  -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms6000m -Xmx6400m  -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
       HaplotypeCaller \
       -R ~{ref_fasta} \
       -I ~{input_bam} \
@@ -129,12 +129,12 @@ task HaplotypeCaller_GATK4_VCF {
 
   runtime {
     #docker: gatk_docker
-    preemptible: preemptible_tries
+    #preemptible: preemptible_tries
     memory: "6.5 GiB"
     cpu: "2"
     #backend: "SLURM-HAPLO"
-    bootDiskSizeGb: 15
-    disks: "local-disk " + disk_size + " HDD"
+    #bootDiskSizeGb: 15
+    #disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
@@ -150,7 +150,7 @@ task MergeVCFs {
     Array[File] input_vcfs
     Array[File] input_vcfs_indexes
     String output_vcf_name
-    Int preemptible_tries
+    #Int preemptible_tries
   }
 
   Int disk_size = ceil(size(input_vcfs, "GiB") * 2.5) + 10
@@ -166,9 +166,9 @@ task MergeVCFs {
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
     cpu: "2"
-    preemptible: preemptible_tries
+    #preemptible: preemptible_tries
     memory: "3 GiB"
-    disks: "local-disk ~{disk_size} HDD"
+    #disks: "local-disk ~{disk_size} HDD"
   }
   output {
     File output_vcf = "~{output_vcf_name}"
@@ -182,15 +182,15 @@ task HardFilterVcf {
     File input_vcf_index
     String vcf_basename
     File interval_list
-    Int preemptible_tries
-    String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
+    #Int preemptible_tries
+    #String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
   }
 
   Int disk_size = ceil(2 * size(input_vcf, "GiB")) + 20
   String output_vcf_name = vcf_basename + ".filtered.vcf.gz"
 
   command {
-     /mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options "-Xms3000m -Xmx3000m" \
+     /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms3000m -Xmx3000m" \
       VariantFiltration \
       -V ~{input_vcf} \
       -L ~{interval_list} \
@@ -204,10 +204,10 @@ task HardFilterVcf {
   }
   runtime {
     #docker: gatk_docker
-    preemptible: preemptible_tries
+    #preemptible: preemptible_tries
     memory: "3 GiB"
-    bootDiskSizeGb: 15
-    disks: "local-disk " + disk_size + " HDD"
+    #bootDiskSizeGb: 15
+    #disks: "local-disk " + disk_size + " HDD"
   }
 }
 
@@ -221,8 +221,8 @@ task CNNScoreVariants {
     File ref_fasta
     File ref_fasta_index
     File ref_dict
-    Int preemptible_tries
-    String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
+    #Int preemptible_tries
+    #String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
   }
 
   Int disk_size = ceil(size(bamout, "GiB") + size(ref_fasta, "GiB") + (size(input_vcf, "GiB") * 2))
@@ -238,7 +238,7 @@ task CNNScoreVariants {
   String tensor_type = if defined(bamout) then "read-tensor" else "reference"
 
   command {
-     /mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options -Xmx10g CNNScoreVariants \
+     /mnt/lustre/genomics/tools/gatk/gatk --java-options -Xmx10g CNNScoreVariants \
        -V ~{input_vcf} \
        -R ~{ref_fasta} \
        -O ~{output_vcf} \
@@ -253,11 +253,11 @@ task CNNScoreVariants {
 
   runtime {
     #docker: gatk_docker
-    preemptible: preemptible_tries
+    #preemptible: preemptible_tries
     memory: "15 GiB"
     cpu: "2"
-    bootDiskSizeGb: 15
-    disks: "local-disk " + disk_size + " HDD"
+    #bootDiskSizeGb: 15
+    #disks: "local-disk " + disk_size + " HDD"
   }
 }
 
@@ -278,20 +278,14 @@ task FilterVariantTranches {
     File dbsnp_resource_vcf
     File dbsnp_resource_vcf_index
     String info_key
-    Int preemptible_tries
-    String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
+    #Int preemptible_tries
+    #String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
   }
 
-Int disk_size = ceil(size(hapmap_resource_vcf, "GiB") +
-                        size(omni_resource_vcf, "GiB") +
-                        size(one_thousand_genomes_resource_vcf, "GiB") +
-                        size(dbsnp_resource_vcf, "GiB") +
-                        (size(input_vcf, "GiB") * 2)
-                      ) + 20
 
   command {
 
-    /mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options -Xmx6g FilterVariantTranches \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options -Xmx6g FilterVariantTranches \
       -V ~{input_vcf} \
       -O ~{vcf_basename}.filtered.vcf.gz \
       ~{sep=" " prefix("--snp-tranche ", snp_tranches)} \
@@ -312,9 +306,9 @@ Int disk_size = ceil(size(hapmap_resource_vcf, "GiB") +
   runtime {
     memory: "7 GiB"
     cpu: "2"
-    bootDiskSizeGb: 15
-    disks: "local-disk " + disk_size + " HDD"
-    preemptible: preemptible_tries
+    #bootDiskSizeGb: 15
+    #disks: "local-disk " + disk_size + " HDD"
+    #preemptible: preemptible_tries
     #docker: gatk_docker
   }
 }

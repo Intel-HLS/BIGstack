@@ -64,7 +64,7 @@ workflow UnmappedBamToAlignedBam {
       input:
         input_bam = unmapped_bam,
         metrics_filename = unmapped_bam_basename + ".unmapped.quality_yield_metrics",
-        preemptible_tries = papi_settings.preemptible_tries
+        #preemptible_tries = papi_settings.preemptible_tries
     }
 
     if (unmapped_bam_size > cutoff_for_large_rg_in_gb) {
@@ -77,7 +77,7 @@ workflow UnmappedBamToAlignedBam {
           output_bam_basename = unmapped_bam_basename + ".aligned.unsorted",
           reference_fasta = references.reference_fasta,
           compression_level = compression_level,
-          preemptible_tries = papi_settings.preemptible_tries,
+          #preemptible_tries = papi_settings.preemptible_tries,
           hard_clip_reads = hard_clip_reads
       }
     }
@@ -91,7 +91,7 @@ workflow UnmappedBamToAlignedBam {
           output_bam_basename = unmapped_bam_basename + ".aligned.unsorted",
           reference_fasta = references.reference_fasta,
           compression_level = compression_level,
-          preemptible_tries = papi_settings.preemptible_tries,
+          #preemptible_tries = papi_settings.preemptible_tries,
           hard_clip_reads = hard_clip_reads
       }
     }
@@ -106,7 +106,7 @@ workflow UnmappedBamToAlignedBam {
       input:
         input_bam = output_aligned_bam,
         output_bam_prefix = unmapped_bam_basename + ".readgroup",
-        preemptible_tries = papi_settings.preemptible_tries
+        #preemptible_tries = papi_settings.preemptible_tries
     }
   }
 
@@ -114,7 +114,7 @@ workflow UnmappedBamToAlignedBam {
   call Utils.SumFloats as SumFloats {
     input:
       sizes = mapped_bam_size,
-      preemptible_tries = papi_settings.preemptible_tries
+      #preemptible_tries = papi_settings.preemptible_tries
   }
 
   # MarkDuplicates and SortSam currently take too long for preemptibles if the input data is too large
@@ -131,7 +131,7 @@ workflow UnmappedBamToAlignedBam {
       metrics_filename = sample_and_unmapped_bams.base_file_name + ".duplicate_metrics",
       total_input_size = SumFloats.total_size,
       compression_level = compression_level,
-      preemptible_tries = if data_too_large_for_preemptibles then 0 else papi_settings.agg_preemptible_tries
+      #preemptible_tries = if data_too_large_for_preemptibles then 0 else papi_settings.agg_preemptible_tries
   }
 
   # Sort aggregated+deduped BAM file and fix tags
@@ -140,7 +140,7 @@ workflow UnmappedBamToAlignedBam {
       input_bam = MarkDuplicates.output_bam,
       output_bam_basename = sample_and_unmapped_bams.base_file_name + ".aligned.duplicate_marked.sorted",
       compression_level = compression_level,
-      preemptible_tries = if data_too_large_for_preemptibles then 0 else papi_settings.agg_preemptible_tries
+      #preemptible_tries = if data_too_large_for_preemptibles then 0 else papi_settings.agg_preemptible_tries
   }
 
   Float agg_bam_size = size(SortSampleBam.output_bam, "GiB")
@@ -156,7 +156,7 @@ workflow UnmappedBamToAlignedBam {
         total_input_size = agg_bam_size,
         lod_threshold = lod_threshold,
         cross_check_by = cross_check_fingerprints_by,
-        preemptible_tries = papi_settings.agg_preemptible_tries
+        #preemptible_tries = papi_settings.agg_preemptible_tries
     }
   }
 
@@ -164,7 +164,7 @@ workflow UnmappedBamToAlignedBam {
   call Utils.CreateSequenceGroupingTSV as CreateSequenceGroupingTSV {
     input:
       ref_dict = references.reference_fasta.ref_dict,
-      preemptible_tries = papi_settings.preemptible_tries
+      #preemptible_tries = papi_settings.preemptible_tries
   }
 
   # Estimate level of cross-sample contamination
@@ -178,7 +178,7 @@ workflow UnmappedBamToAlignedBam {
       ref_fasta = references.reference_fasta.ref_fasta,
       ref_fasta_index = references.reference_fasta.ref_fasta_index,
       output_prefix = sample_and_unmapped_bams.base_file_name + ".preBqsr",
-      preemptible_tries = papi_settings.agg_preemptible_tries,
+      #preemptible_tries = papi_settings.agg_preemptible_tries,
       contamination_underestimation_factor = 0.75
   }
 
@@ -206,7 +206,7 @@ workflow UnmappedBamToAlignedBam {
         ref_fasta = references.reference_fasta.ref_fasta,
         ref_fasta_index = references.reference_fasta.ref_fasta_index,
         bqsr_scatter = bqsr_divisor,
-        preemptible_tries = papi_settings.agg_preemptible_tries
+        #preemptible_tries = papi_settings.agg_preemptible_tries
     }
   }
 
@@ -216,7 +216,7 @@ workflow UnmappedBamToAlignedBam {
     input:
       input_bqsr_reports = BaseRecalibrator.recalibration_report,
       output_report_filename = sample_and_unmapped_bams.base_file_name + ".recal_data.csv",
-      preemptible_tries = papi_settings.preemptible_tries
+      #preemptible_tries = papi_settings.preemptible_tries
   }
 
   scatter (subgroup in CreateSequenceGroupingTSV.sequence_grouping_with_unmapped) {
@@ -233,7 +233,7 @@ workflow UnmappedBamToAlignedBam {
         ref_fasta_index = references.reference_fasta.ref_fasta_index,
         bqsr_scatter = bqsr_divisor,
         compression_level = compression_level,
-        preemptible_tries = papi_settings.agg_preemptible_tries,
+        #preemptible_tries = papi_settings.agg_preemptible_tries,
         bin_base_qualities = bin_base_qualities,
         somatic = somatic
     }
@@ -246,7 +246,7 @@ workflow UnmappedBamToAlignedBam {
       output_bam_basename = sample_and_unmapped_bams.base_file_name,
       total_input_size = agg_bam_size,
       compression_level = compression_level,
-      preemptible_tries = papi_settings.agg_preemptible_tries
+      #preemptible_tries = papi_settings.agg_preemptible_tries
   }
 
   # Outputs that will be retained when execution is complete

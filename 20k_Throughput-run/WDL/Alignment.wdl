@@ -30,7 +30,7 @@ task SamToFastqAndBwaMemAndMba {
     ReferenceFasta reference_fasta
 
     Int compression_level
-    Int preemptible_tries
+    #Int preemptible_tries
     Boolean hard_clip_reads = false
   }
 
@@ -110,10 +110,11 @@ task SamToFastqAndBwaMemAndMba {
   >>>
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"
-    preemptible: preemptible_tries
+    #preemptible: preemptible_tries
     memory: "14 GiB"
-    cpu: "16"
-    disks: "local-disk " + disk_size + " HDD"
+    cpu: "8"
+    #backend: "SLURM-BWA"
+    #disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File output_bam = "~{output_bam_basename}.bam"
@@ -125,7 +126,7 @@ task SamSplitter {
   input {
     File input_bam
     Int n_reads
-    Int preemptible_tries
+    #Int preemptible_tries
     Int compression_level
   }
 
@@ -138,9 +139,9 @@ task SamSplitter {
     set -e
     mkdir output_dir
 
-    total_reads=$(/mnt/lustre/genomics/tools/samtools-1.9/samtools  view -c ~{input_bam})
+    total_reads=$(/mnt/lustre/genomics/tools/samtools/samtools view -c ~{input_bam})
 
-    java -Dsamjdk.compression_level=~{compression_level} -Xms3000m -jar /mnt/lustre/genomics/tools/picard.jar SplitSamByNumberOfReads \
+    java -Dsamjdk.compression_level=~{compression_level} -Xms3000m -Xmx3600m -jar /mnt/lustre/genomics/tools/picard.jar SplitSamByNumberOfReads \
       INPUT=~{input_bam} \
       OUTPUT=output_dir \
       SPLIT_TO_N_READS=~{n_reads} \
@@ -151,8 +152,8 @@ task SamSplitter {
   }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"
-    preemptible: preemptible_tries
+    #preemptible: preemptible_tries
     memory: "3.75 GiB"
-    disks: "local-disk " + disk_size + " HDD"
+    #disks: "local-disk " + disk_size + " HDD"
   }
 }

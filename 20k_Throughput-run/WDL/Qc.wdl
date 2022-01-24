@@ -20,13 +20,13 @@ task CollectQualityYieldMetrics {
   input {
     File input_bam
     String metrics_filename
-    Int preemptible_tries
+    #Int preemptible_tries
   }
 
   Int disk_size = ceil(size(input_bam, "GiB")) + 20
 
   command {
-    java -Xms2000m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms2000m -Xmx3400m -jar /mnt/lustre/genomics/tools/picard.jar \
       CollectQualityYieldMetrics \
       INPUT=~{input_bam} \
       OQ=true \
@@ -34,9 +34,10 @@ task CollectQualityYieldMetrics {
   }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    disks: "local-disk " + disk_size + " HDD"
+    cpu: "1"
+    #disks: "local-disk " + disk_size + " HDD"
     memory: "3.5 GiB"
-    preemptible: preemptible_tries
+    #preemptible: preemptible_tries
   }
   output {
     File quality_yield_metrics = "~{metrics_filename}"
@@ -48,13 +49,13 @@ task CollectUnsortedReadgroupBamQualityMetrics {
   input {
     File input_bam
     String output_bam_prefix
-    Int preemptible_tries
+    #Int preemptible_tries
   }
 
   Int disk_size = ceil(size(input_bam, "GiB")) + 20
 
   command {
-    java -Xms5000m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms5000m -Xmx6900m -jar /mnt/lustre/genomics/tools/picard.jar \
       CollectMultipleMetrics \
       INPUT=~{input_bam} \
       OUTPUT=~{output_bam_prefix} \
@@ -73,8 +74,8 @@ task CollectUnsortedReadgroupBamQualityMetrics {
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
     memory: "7 GiB"
-    disks: "local-disk " + disk_size + " HDD"
-    preemptible: preemptible_tries
+    #disks: "local-disk " + disk_size + " HDD"
+    cpu: "2"
   }
   output {
     File base_distribution_by_cycle_pdf = "~{output_bam_prefix}.base_distribution_by_cycle.pdf"
@@ -98,7 +99,7 @@ task CollectReadgroupBamQualityMetrics {
     File ref_fasta
     File ref_fasta_index
     Boolean collect_gc_bias_metrics = true
-    Int preemptible_tries
+    #Int preemptible_tries
   }
 
   Float ref_size = size(ref_fasta, "GiB") + size(ref_fasta_index, "GiB") + size(ref_dict, "GiB")
@@ -110,7 +111,7 @@ task CollectReadgroupBamQualityMetrics {
       ~{output_bam_prefix}.gc_bias.pdf \
       ~{output_bam_prefix}.gc_bias.summary_metrics
 
-    java -Xms5000m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms5000m  -Xmx6900m -jar /mnt/lustre/genomics/tools/picard.jar \
       CollectMultipleMetrics \
       INPUT=~{input_bam} \
       REFERENCE_SEQUENCE=~{ref_fasta} \
@@ -123,10 +124,11 @@ task CollectReadgroupBamQualityMetrics {
       METRIC_ACCUMULATION_LEVEL=READ_GROUP
   }
   runtime {
+    cpu: "2"
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
     memory: "7 GiB"
-    disks: "local-disk " + disk_size + " HDD"
-    preemptible: preemptible_tries
+    #disks: "local-disk " + disk_size + " HDD"
+    #preemptible: preemptible_tries
   }
   output {
     File alignment_summary_metrics = "~{output_bam_prefix}.alignment_summary_metrics"
@@ -146,7 +148,7 @@ task CollectAggregationMetrics {
     File ref_fasta
     File ref_fasta_index
     Boolean collect_gc_bias_metrics = true
-    Int preemptible_tries
+    #Int preemptible_tries
   }
 
   Float ref_size = size(ref_fasta, "GiB") + size(ref_fasta_index, "GiB") + size(ref_dict, "GiB")
@@ -160,7 +162,7 @@ task CollectAggregationMetrics {
       ~{output_bam_prefix}.insert_size_metrics \
       ~{output_bam_prefix}.insert_size_histogram.pdf
 
-    java -Xms5000m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms5000m  -Xmx6900m -jar /mnt/lustre/genomics/tools/picard.jar \
       CollectMultipleMetrics \
       INPUT=~{input_bam} \
       REFERENCE_SEQUENCE=~{ref_fasta} \
@@ -177,10 +179,11 @@ task CollectAggregationMetrics {
       METRIC_ACCUMULATION_LEVEL=LIBRARY
   }
   runtime {
+    cpu: "2"
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
     memory: "7 GiB"
-    disks: "local-disk " + disk_size + " HDD"
-    preemptible: preemptible_tries
+    #disks: "local-disk " + disk_size + " HDD"
+    #preemptible: preemptible_tries
   }
   output {
     File alignment_summary_metrics = "~{output_bam_prefix}.alignment_summary_metrics"
@@ -207,7 +210,7 @@ task ConvertSequencingArtifactToOxoG {
     File ref_dict
     File ref_fasta
     File ref_fasta_index
-    Int preemptible_tries
+    #Int preemptible_tries
     Int memory_multiplier = 1
   }
 
@@ -219,7 +222,7 @@ task ConvertSequencingArtifactToOxoG {
 
   command {
     input_base=$(dirname ~{pre_adapter_detail_metrics})/~{base_name}
-    java -Xms~{java_memory_size}m \
+    java -Xms~{java_memory_size}m  -Xmx~{memory_size}g \
       -jar /mnt/lustre/genomics/tools/picard.jar \
       ConvertSequencingArtifactToOxoG \
       --INPUT_BASE $input_base \
@@ -229,8 +232,8 @@ task ConvertSequencingArtifactToOxoG {
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
     memory: "~{memory_size} GiB"
-    disks: "local-disk " + disk_size + " HDD"
-    preemptible: preemptible_tries
+    #disks: "local-disk " + disk_size + " HDD"
+    #preemptible: preemptible_tries
   }
   output {
     File oxog_metrics = "~{base_name}.oxog_metrics"
@@ -245,7 +248,7 @@ task CrossCheckFingerprints {
     File haplotype_database_file
     String metrics_filename
     Float total_input_size
-    Int preemptible_tries
+    #Int preemptible_tries
     Float lod_threshold
     String cross_check_by
   }
@@ -254,7 +257,7 @@ task CrossCheckFingerprints {
 
   command <<<
     java -Dsamjdk.buffer_size=131072 \
-      -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xms3000m \
+      -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xms3000m -Xmx3400m \
       -jar /mnt/lustre/genomics/tools/picard.jar \
       CrosscheckFingerprints \
       OUTPUT=~{metrics_filename} \
@@ -266,9 +269,10 @@ task CrossCheckFingerprints {
   >>>
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    preemptible: preemptible_tries
+    cpu: "2"
+    #preemptible: preemptible_tries
     memory: "3.5 GiB"
-    disks: "local-disk " + disk_size + " HDD"
+    #disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File cross_check_fingerprints_metrics = "~{metrics_filename}"
@@ -285,7 +289,7 @@ task CheckFingerprint {
     File? genotypes
     File? genotypes_index
     String sample
-    Int preemptible_tries
+    #Int preemptible_tries
   }
 
   Int disk_size = ceil(size(input_bam, "GiB")) + 20
@@ -296,7 +300,7 @@ task CheckFingerprint {
 
   command <<<
     java -Dsamjdk.buffer_size=131072 \
-      -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xms3g  \
+      -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xms3g  -Xmx3400m \
       -jar /mnt/lustre/genomics/tools/picard.jar \
       CheckFingerprint \
       INPUT=~{input_bam} \
@@ -310,9 +314,10 @@ task CheckFingerprint {
   >>>
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    preemptible: preemptible_tries
+    cpu: "2"
+    #preemptible: preemptible_tries
     memory: "3.5 GiB"
-    disks: "local-disk " + disk_size + " HDD"
+    #disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File summary_metrics = summary_metrics_location
@@ -326,7 +331,7 @@ task CheckPreValidation {
     File chimerism_metrics
     Float max_duplication_in_reasonable_sample
     Float max_chimerism_in_reasonable_sample
-    Int preemptible_tries
+    #Int preemptible_tries
   }
 
   command <<<
@@ -336,7 +341,7 @@ task CheckPreValidation {
     grep -A 1 PERCENT_DUPLICATION ~{duplication_metrics} > duplication.csv
     grep -A 3 PCT_CHIMERAS ~{chimerism_metrics} | grep -v OF_PAIR > chimerism.csv
 
-    python <<CODE
+    python2 <<CODE
 
     import csv
     with open('duplication.csv') as dupfile:
@@ -358,8 +363,8 @@ task CheckPreValidation {
   >>>
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"
-    preemptible: preemptible_tries
-    #docker: "us.gcr.io/broad-gotc-prod/python:2.7"
+    #preemptible: preemptible_tries
+    #docker: "us.gcr.io/broad-gotc-prod/python2:2.7"
     memory: "2 GiB"
   }
   output {
@@ -380,7 +385,7 @@ task ValidateSamFile {
     Int? max_output
     Array[String]? ignore
     Boolean? is_outlier_data
-    Int preemptible_tries
+    #Int preemptible_tries
     Int memory_multiplier = 1
     Int additional_disk = 20
   }
@@ -392,7 +397,7 @@ task ValidateSamFile {
   Int java_memory_size = (memory_size - 1) * 1000
 
   command {
-    java -Xms~{java_memory_size}m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms~{java_memory_size}m -Xmx~{memory_size}g -jar /mnt/lustre/genomics/tools/picard.jar \
       ValidateSamFile \
       INPUT=~{input_bam} \
       OUTPUT=~{report_filename} \
@@ -405,9 +410,10 @@ task ValidateSamFile {
   }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    preemptible: preemptible_tries
+    cpu: "2"
+    #preemptible: preemptible_tries
     memory: "~{memory_size} GiB"
-    disks: "local-disk " + disk_size + " HDD"
+    #disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File report = "~{report_filename}"
@@ -424,14 +430,14 @@ task CollectWgsMetrics {
     File ref_fasta
     File ref_fasta_index
     Int read_length
-    Int preemptible_tries
+    #Int preemptible_tries
   }
 
   Float ref_size = size(ref_fasta, "GiB") + size(ref_fasta_index, "GiB")
   Int disk_size = ceil(size(input_bam, "GiB") + ref_size) + 20
 
   command {
-    java -Xms2000m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms2000m -Xmx3g -jar /mnt/lustre/genomics/tools/picard.jar \
       CollectWgsMetrics \
       INPUT=~{input_bam} \
       VALIDATION_STRINGENCY=SILENT \
@@ -444,9 +450,10 @@ task CollectWgsMetrics {
   }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    preemptible: preemptible_tries
+    cpu: "2"
+    #preemptible: preemptible_tries
     memory: "3 GiB"
-    disks: "local-disk " + disk_size + " HDD"
+    #disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File metrics = "~{metrics_filename}"
@@ -463,7 +470,7 @@ task CollectRawWgsMetrics {
     File ref_fasta
     File ref_fasta_index
     Int read_length
-    Int preemptible_tries
+    #Int preemptible_tries
     Int memory_multiplier = 1
     Int additional_disk = 20
   }
@@ -475,7 +482,7 @@ task CollectRawWgsMetrics {
   String java_memory_size = (memory_size - 1) * 1000
 
   command {
-    java -Xms~{java_memory_size}m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms~{java_memory_size}m -Xmx~{memory_size}g  -jar /mnt/lustre/genomics/tools/picard.jar \
       CollectRawWgsMetrics \
       INPUT=~{input_bam} \
       VALIDATION_STRINGENCY=SILENT \
@@ -488,9 +495,10 @@ task CollectRawWgsMetrics {
   }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    preemptible: preemptible_tries
+    cpu: "2"
+    #preemptible: preemptible_tries
     memory: "~{memory_size} GiB"
-    disks: "local-disk " + disk_size + " HDD"
+    #disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File metrics = "~{metrics_filename}"
@@ -506,7 +514,7 @@ task CollectHsMetrics {
     String metrics_filename
     File target_interval_list
     File bait_interval_list
-    Int preemptible_tries
+    #Int preemptible_tries
     Int memory_multiplier = 1
     Int additional_disk = 20
   }
@@ -521,7 +529,7 @@ task CollectHsMetrics {
 
   # There are probably more metrics we want to generate with this tool
   command {
-    java -Xms~{java_memory_size}m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms~{java_memory_size}m  -Xmx~{memory_size}g -jar /mnt/lustre/genomics/tools/picard.jar \
       CollectHsMetrics \
       INPUT=~{input_bam} \
       REFERENCE_SEQUENCE=~{ref_fasta} \
@@ -536,9 +544,9 @@ task CollectHsMetrics {
 
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    preemptible: preemptible_tries
+    #preemptible: preemptible_tries
     memory: "~{memory_size} GiB"
-    disks: "local-disk " + disk_size + " HDD"
+    #disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
@@ -552,22 +560,23 @@ task CalculateReadGroupChecksum {
     File input_bam
     File input_bam_index
     String read_group_md5_filename
-    Int preemptible_tries
+    #Int preemptible_tries
   }
 
   Int disk_size = ceil(size(input_bam, "GiB")) + 20
 
   command {
-    java -Xms1000m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms1000m -Xmx1900m -jar /mnt/lustre/genomics/tools/picard.jar \
       CalculateReadGroupChecksum \
       INPUT=~{input_bam} \
       OUTPUT=~{read_group_md5_filename}
   }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    preemptible: preemptible_tries
+    cpu: "2"
+    #preemptible: preemptible_tries
     memory: "2 GiB"
-    disks: "local-disk " + disk_size + " HDD"
+    #disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File md5_file = "~{read_group_md5_filename}"
@@ -585,16 +594,16 @@ task ValidateVCF {
     File dbsnp_vcf
     File dbsnp_vcf_index
     File calling_interval_list
-    Int preemptible_tries
+    #Int preemptible_tries
     Boolean is_gvcf = true
-    String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
+    #String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
   }
 
   Float ref_size = size(ref_fasta, "GiB") + size(ref_fasta_index, "GiB") + size(ref_dict, "GiB")
   Int disk_size = ceil(size(input_vcf, "GiB") + size(dbsnp_vcf, "GiB") + ref_size) + 20
 
   command {
-    /mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options -Xms6000m \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms6000m -Xmx6900m" \
       ValidateVariants \
       -V ~{input_vcf} \
       -R ~{ref_fasta} \
@@ -605,10 +614,11 @@ task ValidateVCF {
   }
   runtime {
     #docker: gatk_docker
-    preemptible: preemptible_tries
+    cpu: "2"
+    #preemptible: preemptible_tries
     memory: "7 GiB"
-    bootDiskSizeGb: 15
-    disks: "local-disk " + disk_size + " HDD"
+    #bootDiskSizeGb: 15
+    #disks: "local-disk " + disk_size + " HDD"
   }
 }
 
@@ -623,13 +633,13 @@ task CollectVariantCallingMetrics {
     File ref_dict
     File evaluation_interval_list
     Boolean is_gvcf = true
-    Int preemptible_tries
+    #Int preemptible_tries
   }
 
   Int disk_size = ceil(size(input_vcf, "GiB") + size(dbsnp_vcf, "GiB")) + 20
 
   command {
-    java -Xms2000m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms2000m  -Xmx2900m  -jar /mnt/lustre/genomics/tools/picard.jar \
       CollectVariantCallingMetrics \
       INPUT=~{input_vcf} \
       OUTPUT=~{metrics_basename} \
@@ -640,9 +650,10 @@ task CollectVariantCallingMetrics {
   }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    preemptible: preemptible_tries
+    cpu: "2"
+    #preemptible: preemptible_tries
     memory: "3 GiB"
-    disks: "local-disk " + disk_size + " HDD"
+    #disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File summary_metrics = "~{metrics_basename}.variant_calling_summary_metrics"

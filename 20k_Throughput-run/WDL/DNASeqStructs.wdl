@@ -68,6 +68,6 @@ struct CrossSpeciesContaminationReferences {
 }
 
 struct PapiSettings {
-  Int preemptible_tries
-  Int agg_preemptible_tries
+  #Int preemptible_tries
+  #Int agg_preemptible_tries
 }
