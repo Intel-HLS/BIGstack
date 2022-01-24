@@ -282,6 +282,13 @@ task FilterVariantTranches {
     #String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
   }
 
+Int disk_size = ceil(size(hapmap_resource_vcf, "GiB") +
+                        size(omni_resource_vcf, "GiB") +
+                        size(one_thousand_genomes_resource_vcf, "GiB") +
+                        size(dbsnp_resource_vcf, "GiB") +
+                        (size(input_vcf, "GiB") * 2)
+                      ) + 20
+
 
   command {
 
