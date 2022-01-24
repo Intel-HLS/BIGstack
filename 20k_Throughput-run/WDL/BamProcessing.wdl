@@ -20,7 +20,7 @@ task SortSam {
   input {
     File input_bam
     String output_bam_basename
-    #Int preemptible_tries
+    Int preemptible_tries
     Int compression_level
   }
   # SortSam spills to disk a lot more because we are only store 300000 records in RAM now because its faster for our data so it needs
@@ -29,7 +29,7 @@ task SortSam {
   Int disk_size = ceil(sort_sam_disk_multiplier * size(input_bam, "GiB")) + 20
 
   command {
-    java -Dsamjdk.compression_level=~{compression_level} -Xms4000m -Xms4900m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Dsamjdk.compression_level=~{compression_level} -Xms4000m -jar /mnt/lustre/genomics/tools/picard.jar \
       SortSam \
       INPUT=~{input_bam} \
       OUTPUT=~{output_bam_basename}.bam \
@@ -41,12 +41,10 @@ task SortSam {
   }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    #disks: "local-disk " + disk_size + " HDD"
-    #This WLD uses ~118GB of disk space.   
-    #Limit the nuber taks runing by setting cpu higher 
-    cpu: "16"
+    disks: "local-disk " + disk_size + " HDD"
+    cpu: "1"
     memory: "5000 MiB"
-    #preemptible: preemptible_tries
+    preemptible: preemptible_tries
   }
   output {
     File output_bam = "~{output_bam_basename}.bam"
@@ -60,9 +58,9 @@ task SortSamSpark {
   input {
     File input_bam
     String output_bam_basename
-    #Int preemptible_tries
+    Int preemptible_tries
     Int compression_level
-    #String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
+    String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
   }
   # SortSam spills to disk a lot more because we are only store 300000 records in RAM now because its faster for our data so it needs
   # more disk space.  Also it spills to disk in an uncompressed format so we need to account for that with a larger multiplier
@@ -72,21 +70,21 @@ task SortSamSpark {
   command {
     set -e
 
-    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Dsamjdk.compression_level=~{compression_level} -Xms100g -Xmx100g" \
+    /mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options "-Dsamjdk.compression_level=~{compression_level} -Xms100g -Xmx100g" \
       SortSamSpark \
       -I ~{input_bam} \
       -O ~{output_bam_basename}.bam \
       -- --conf spark.local.dir=. --spark-master 'local[16]' --conf 'spark.kryo.referenceTracking=false'
 
-    /mnt/lustre/genomics/tools/samtools/samtools index ~{output_bam_basename}.bam ~{output_bam_basename}.bai
+    /mnt/lustre/genomics/tools/samtools-1.9/samtools  index ~{output_bam_basename}.bam ~{output_bam_basename}.bai
   }
   runtime {
     #docker: gatk_docker
-    #disks: "local-disk " + disk_size + " HDD"
-    #bootDiskSizeGb: "15"
+    disks: "local-disk " + disk_size + " HDD"
+    bootDiskSizeGb: "15"
     cpu: "16"
     memory: "102 GiB"
-    #preemptible: preemptible_tries
+    preemptible: preemptible_tries
   }
   output {
     File output_bam = "~{output_bam_basename}.bam"
@@ -102,7 +100,7 @@ task MarkDuplicates {
     String metrics_filename
     Float total_input_size
     Int compression_level
-    #Int preemptible_tries
+    Int preemptible_tries
 
     # The program default for READ_NAME_REGEX is appropriate in nearly every case.
     # Sometimes we wish to supply "null" in order to turn off optical duplicate detection
@@ -127,7 +125,7 @@ task MarkDuplicates {
   # While query-grouped isn't actually query-sorted, it's good enough for MarkDuplicates with ASSUME_SORT_ORDER="queryname"
 
   command {
-    java -Dsamjdk.compression_level=~{compression_level} -Xms~{java_memory_size}g  -Xmx~{java_memory_size}g -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Dsamjdk.compression_level=~{compression_level} -Xms~{java_memory_size}g -jar /mnt/lustre/genomics/tools/picard.jar \
       MarkDuplicates \
       INPUT=~{sep=' INPUT=' input_bams} \
       OUTPUT=~{output_bam_basename}.bam \
@@ -142,10 +140,9 @@ task MarkDuplicates {
   }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    cpu: "2"
-    #preemptible: preemptible_tries
+    preemptible: preemptible_tries
     memory: "~{memory_size} GiB"
-    #disks: "local-disk " + disk_size + " HDD"
+    disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File output_bam = "~{output_bam_basename}.bam"
@@ -160,7 +157,7 @@ task MarkDuplicatesSpark {
     String metrics_filename
     Float total_input_size
     Int compression_level
-    #Int preemptible_tries
+    Int preemptible_tries
 
     String? read_name_regex
     Int memory_multiplier = 3
@@ -182,8 +179,8 @@ task MarkDuplicatesSpark {
   # MarkDuplicatesSpark requires PAPIv2
   command <<<
     set -e
-    export GATK_LOCAL_JAR=/root/gatk.jar
-    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Dsamjdk.compression_level=~{compression_level} -Xmx~{java_memory_size}g" \
+    export GATK_LOCAL_JAR=/mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk-package-4.1.9.0-local.jar
+    /mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options "-Dsamjdk.compression_level=~{compression_level} -Xmx~{java_memory_size}g" \
       MarkDuplicatesSpark \
       --input ~{sep=' --input ' input_bams} \
       --output ~{output_bam_location} \
@@ -198,11 +195,11 @@ task MarkDuplicatesSpark {
 
   runtime {
     #docker: "jamesemery/gatknightly:gatkMasterSnapshot44ca2e9e84a"
-    #disks: "/mnt/tmp " + ceil(2.1 * total_input_size) + " LOCAL, local-disk " + disk_size + " HDD"
-    #bootDiskSizeGb: "50"
+    disks: "/mnt/tmp " + ceil(2.1 * total_input_size) + " LOCAL, local-disk " + disk_size + " HDD"
+    bootDiskSizeGb: "50"
     cpu: cpu_size
     memory: "~{memory_size} GiB"
-    #preemptible: preemptible_tries
+    preemptible: preemptible_tries
   }
 
   output {
@@ -226,8 +223,8 @@ task BaseRecalibrator {
     File ref_fasta
     File ref_fasta_index
     Int bqsr_scatter
-    #Int preemptible_tries
-    #String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
+    Int preemptible_tries
+    String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
   }
 
   Float ref_size = size(ref_fasta, "GiB") + size(ref_fasta_index, "GiB") + size(ref_dict, "GiB")
@@ -241,9 +238,9 @@ task BaseRecalibrator {
   }
 
   command {
-    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -XX:+PrintFlagsFinal \
+    /mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -XX:+PrintFlagsFinal \
       -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails \
-      -Xloggc:gc_log.log -Xms5g -Xmx6g " \
+      -Xloggc:gc_log.log -Xms5g" \
       BaseRecalibrator \
       -R ~{ref_fasta} \
       -I ~{input_bam} \
@@ -255,11 +252,10 @@ task BaseRecalibrator {
   }
   runtime {
     #docker: gatk_docker
-    cpu: "2"
-    #preemptible: preemptible_tries
+    preemptible: preemptible_tries
     memory: "6 GiB"
-    #bootDiskSizeGb: 15
-    #disks: "local-disk " + disk_size + " HDD"
+    bootDiskSizeGb: 15
+    disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File recalibration_report = "~{recalibration_report_filename}"
@@ -279,8 +275,8 @@ task ApplyBQSR {
     File ref_fasta_index
     Int compression_level
     Int bqsr_scatter
-    #Int preemptible_tries
-    #String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
+    Int preemptible_tries
+    String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
     Int memory_multiplier = 1
     Int additional_disk = 20
     Boolean bin_base_qualities = true
@@ -301,9 +297,9 @@ task ApplyBQSR {
   }
 
   command {
-    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-XX:+PrintFlagsFinal -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps \
+    /mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options "-XX:+PrintFlagsFinal -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps \
       -XX:+PrintGCDetails -Xloggc:gc_log.log \
-      -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Dsamjdk.compression_level=~{compression_level} -Xms3000m -Xms~{memory_size}m " \
+      -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Dsamjdk.compression_level=~{compression_level} -Xms3000m" \
       ApplyBQSR \
       --create-output-bam-md5 \
       --add-output-sam-program-record \
@@ -321,11 +317,10 @@ task ApplyBQSR {
   }
   runtime {
     #docker: gatk_docker
-    cpu: "2"
-    #preemptible: preemptible_tries
+    preemptible: preemptible_tries
     memory: "~{memory_size} MiB"
-    #bootDiskSizeGb: 15
-    #disks: "local-disk " + disk_size + " HDD"
+    bootDiskSizeGb: 15
+    disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File recalibrated_bam = "~{output_bam_basename}.bam"
@@ -338,23 +333,22 @@ task GatherBqsrReports {
   input {
     Array[File] input_bqsr_reports
     String output_report_filename
-    #Int preemptible_tries
-    #String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
+    Int preemptible_tries
+    String gatk_docker = "us.gcr.io/broad-gatk/gatk:4.1.8.0"
   }
 
   command {
-    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms3000m -Xmx3400m" \
+    /mnt/lustre/genomics/tools/gatk-4.1.9.0/gatk --java-options "-Xms3000m" \
       GatherBQSRReports \
       -I ~{sep=' -I ' input_bqsr_reports} \
       -O ~{output_report_filename}
     }
   runtime {
     #docker: gatk_docker
-    cpu: "2"
-    #preemptible: preemptible_tries
+    preemptible: preemptible_tries
     memory: "3500 MiB"
-    #bootDiskSizeGb: 15
-    #disks: "local-disk 20 HDD"
+    bootDiskSizeGb: 15
+    disks: "local-disk 20 HDD"
   }
   output {
     File output_bqsr_report = "~{output_report_filename}"
@@ -368,14 +362,14 @@ task GatherSortedBamFiles {
     String output_bam_basename
     Float total_input_size
     Int compression_level
-    #Int preemptible_tries
+    Int preemptible_tries
   }
 
   # Multiply the input bam size by two to account for the input and output
   Int disk_size = ceil(2 * total_input_size) + 20
 
   command {
-    java -Dsamjdk.compression_level=~{compression_level} -Xms2000m -Xms2900m  -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Dsamjdk.compression_level=~{compression_level} -Xms2000m -jar /mnt/lustre/genomics/tools/picard.jar \
       GatherBamFiles \
       INPUT=~{sep=' INPUT=' input_bams} \
       OUTPUT=~{output_bam_basename}.bam \
@@ -384,9 +378,9 @@ task GatherSortedBamFiles {
     }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    #preemptible: preemptible_tries
+    preemptible: preemptible_tries
     memory: "3 GiB"
-    #disks: "local-disk " + disk_size + " HDD"
+    disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File output_bam = "~{output_bam_basename}.bam"
@@ -403,14 +397,14 @@ task GatherUnsortedBamFiles {
     String output_bam_basename
     Float total_input_size
     Int compression_level
-    #Int preemptible_tries
+    Int preemptible_tries
   }
 
   # Multiply the input bam size by two to account for the input and output
   Int disk_size = ceil(2 * total_input_size) + 20
 
   command {
-    java -Dsamjdk.compression_level=~{compression_level} -Xms2000m -Xms2900m -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Dsamjdk.compression_level=~{compression_level} -Xms2000m -jar /mnt/lustre/genomics/tools/picard.jar \
       GatherBamFiles \
       INPUT=~{sep=' INPUT=' input_bams} \
       OUTPUT=~{output_bam_basename}.bam \
@@ -419,10 +413,9 @@ task GatherUnsortedBamFiles {
     }
   runtime {
     #docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.23.8"
-    #preemptible: preemptible_tries
-    cpu: "2"
+    preemptible: preemptible_tries
     memory: "3 GiB"
-    #disks: "local-disk " + disk_size + " HDD"
+    disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File output_bam = "~{output_bam_basename}.bam"
@@ -436,7 +429,7 @@ task GenerateSubsettedContaminationResources {
     File contamination_sites_ud
     File contamination_sites_bed
     File contamination_sites_mu
-    #Int preemptible_tries
+    Int preemptible_tries
   }
 
   String output_ud = bait_set_name + "." + basename(contamination_sites_ud)
@@ -469,9 +462,9 @@ task GenerateSubsettedContaminationResources {
 
   >>>
   runtime {
-    #preemptible: preemptible_tries
+    preemptible: preemptible_tries
     memory: "3.5 GiB"
-    #disks: "local-disk 10 HDD"
+    disks: "local-disk 10 HDD"
     #docker: "us.gcr.io/broad-gotc-prod/bedtools:2.27.1"
   }
   output {
@@ -504,7 +497,7 @@ task CheckContamination {
     File ref_fasta
     File ref_fasta_index
     String output_prefix
-    #Int preemptible_tries
+    Int preemptible_tries
     Float contamination_underestimation_factor
     Boolean disable_sanity_check = false
   }
@@ -529,8 +522,7 @@ task CheckContamination {
     1>/dev/null
 
     # used to read from the selfSM file and calculate contamination, which gets printed out
-    # python23 <<CODE
-    python2 <<CODE
+    python3 <<CODE
     import csv
     import sys
     with open('~{output_prefix}.selfSM') as selfSM:
@@ -543,7 +535,6 @@ task CheckContamination {
           # vcf and bam.
           sys.stderr.write("Found zero likelihoods. Bam is either very-very shallow, or aligned to the wrong reference (relative to the vcf).")
           sys.exit(1)
-          #print(float(row["FREEMIX(alpha)"])/~{contamination_underestimation_factor})
         print(float(row["FREEMIX"])/~{contamination_underestimation_factor})
         i = i + 1
         # there should be exactly one row, and if this isn't the case the format of the output is unexpectedly different
@@ -554,9 +545,9 @@ task CheckContamination {
     CODE
   >>>
   runtime {
-    #preemptible: preemptible_tries
+    preemptible: preemptible_tries
     memory: "7.5 GiB"
-    #disks: "local-disk " + disk_size + " HDD"
+    disks: "local-disk " + disk_size + " HDD"
     #docker: "us.gcr.io/broad-gotc-prod/verify-bam-id:c1cba76e979904eb69c31520a0d7f5be63c72253-1553018888"
     cpu: 2
   }
