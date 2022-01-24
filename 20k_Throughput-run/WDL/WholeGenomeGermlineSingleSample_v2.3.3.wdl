@@ -102,7 +102,7 @@ workflow WholeGenomeGermlineSingleSample {
       duplication_metrics = UnmappedBamToAlignedBam.duplicate_metrics,
       chimerism_metrics = AggregatedBamQC.agg_alignment_summary_metrics,
       base_file_name = sample_and_unmapped_bams.base_file_name,
-      #agg_preemptible_tries = papi_settings.agg_preemptible_tries
+      agg_preemptible_tries = papi_settings.agg_preemptible_tries
   }
 
   # QC the sample WGS metrics (stringent thresholds)
@@ -115,7 +115,7 @@ workflow WholeGenomeGermlineSingleSample {
       ref_fasta_index = references.reference_fasta.ref_fasta_index,
       wgs_coverage_interval_list = wgs_coverage_interval_list,
       read_length = read_length,
-      #preemptible_tries = papi_settings.agg_preemptible_tries
+      preemptible_tries = papi_settings.agg_preemptible_tries
   }
 
   # QC the sample raw WGS metrics (common thresholds)
@@ -128,7 +128,7 @@ workflow WholeGenomeGermlineSingleSample {
       ref_fasta_index = references.reference_fasta.ref_fasta_index,
       wgs_coverage_interval_list = wgs_coverage_interval_list,
       read_length = read_length,
-      #preemptible_tries = papi_settings.agg_preemptible_tries
+      preemptible_tries = papi_settings.agg_preemptible_tries
   }
 
   call ToGvcf.VariantCalling as BamToGvcf {
@@ -147,7 +147,7 @@ workflow WholeGenomeGermlineSingleSample {
       dbsnp_vcf_index = references.dbsnp_vcf_index,
       base_file_name = sample_and_unmapped_bams.base_file_name,
       final_vcf_base_name = final_gvcf_base_name,
-      #agg_preemptible_tries = papi_settings.agg_preemptible_tries,
+      agg_preemptible_tries = papi_settings.agg_preemptible_tries,
       use_gatk3_haplotype_caller = use_gatk3_haplotype_caller
   }
 
