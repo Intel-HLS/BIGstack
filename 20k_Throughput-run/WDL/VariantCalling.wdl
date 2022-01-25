@@ -24,7 +24,7 @@ workflow VariantCalling {
     File dbsnp_vcf_index
     String base_file_name
     String final_vcf_base_name
-    #Int agg_preemptible_tries
+    Int agg_preemptible_tries
     Boolean make_gvcf = true
     Boolean make_bamout = false
     Boolean use_gatk3_haplotype_caller = false
@@ -63,7 +63,7 @@ workflow VariantCalling {
           ref_fasta = ref_fasta,
           ref_fasta_index = ref_fasta_index,
           contamination = contamination,
-          #preemptible_tries = agg_preemptible_tries,
+          preemptible_tries = agg_preemptible_tries,
           hc_scatter = hc_divisor
       }
     }
@@ -84,7 +84,7 @@ workflow VariantCalling {
           hc_scatter = hc_divisor,
           make_gvcf = make_gvcf,
           make_bamout = make_bamout,
-          #preemptible_tries = agg_preemptible_tries
+          preemptible_tries = agg_preemptible_tries
        }
 
       # If bamout files were created, we need to sort and gather them into one bamout
@@ -93,7 +93,7 @@ workflow VariantCalling {
           input:
             input_bam = HaplotypeCallerGATK4.bamout,
             output_bam_basename = final_vcf_base_name,
-            #preemptible_tries = agg_preemptible_tries,
+            preemptible_tries = agg_preemptible_tries,
             compression_level = 2
         }
       }
@@ -110,7 +110,7 @@ workflow VariantCalling {
       input_vcfs = vcfs_to_merge,
       input_vcfs_indexes = vcf_indices_to_merge,
       output_vcf_name = final_vcf_base_name + merge_suffix,
-      #preemptible_tries = agg_preemptible_tries
+      preemptible_tries = agg_preemptible_tries
   }
 
   if (make_bamout) {
@@ -133,7 +133,7 @@ workflow VariantCalling {
       ref_dict = ref_dict,
       calling_interval_list = calling_interval_list,
       is_gvcf = make_gvcf,
-      #preemptible_tries = agg_preemptible_tries
+      preemptible_tries = agg_preemptible_tries
   }
 
   # QC the (g)VCF
@@ -147,7 +147,7 @@ workflow VariantCalling {
       ref_dict = ref_dict,
       evaluation_interval_list = evaluation_interval_list,
       is_gvcf = make_gvcf,
-      #preemptible_tries = agg_preemptible_tries
+      preemptible_tries = agg_preemptible_tries
   }
 
   output {
@@ -187,8 +187,8 @@ task MergeBamouts {
   runtime {
     #docker: "biocontainers/samtools:1.3.1"
     memory: "4 GiB"
-    #disks: "local-disk ~{disk_size} HDD"
-    #preemptible: 3
+    disks: "local-disk ~{disk_size} HDD"
+    preemptible: 3
     cpu: 1
   }
 }
