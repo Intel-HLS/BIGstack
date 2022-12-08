@@ -5,13 +5,14 @@ To submit, monitor, and receive output from these workflows, follow these steps:
 
  | Genomics Tools | Version |
  | :---: | --- |
- | **WARP** |   v2.3.3 |
- | **GATK** |   4.1.9.0 |
- | **bwa** |    0.7.17 |
- | **cromwell** |       57 |
- | **samtools** |       1.9 |
- | **picard** |         >= 2.20.0  |
- | **VerifyBamID2** |
+ | **WARP** | v3.1.6 |
+ | **GATK** | 4.2.6.1 |
+ | **bwa** | 0.7.17 |
+ | **cromwell** | 84 |
+ | **samtools** | 1.11 |
+ | **picard** | 2.27.4 |
+ | **VerifyBamID2** | 2.0.1 |
+ | **java** | java-11-openjdk - Cromwell<br>java-1.8.0-openjdk - GATK |
 
    Please refer to [WARP Requirement](https://broadinstitute.github.io/warp/docs/Pipelines/Whole_Genome_Germline_Single_Sample_Pipeline/README#software-version-requirements) for more details.
 
@@ -23,7 +24,7 @@ To clone the repository, run these commands:
      cd 20k_Throughput-run
   
 ## 2.	Configure and setup environment variables
-Edit the configure file to set up the various paths to work directories:GENOMICS_PATH, TOOLS_PATH, DATA_PATH and NUM_WORKFLOW and zip the wdls in to warp.zip
+Edit the configure file to set up the various paths to work directories: GENOMICS_PATH, TOOLS_PATH, DATA_PATH and NUM_WORKFLOW and zip the wdls in to warp.zip
 
 	./configure
 
@@ -57,7 +58,7 @@ This will output the Elapse time and average Markduplicates elapse time.
 
 # Troubleshooting
 
-## Install dependencies for Step 3 and 4 :
+## Install dependencies for Step 3-5:
 	sudo yum install R -y
 
 	sudo yum install jq -y
@@ -70,3 +71,11 @@ This will output the Elapse time and average Markduplicates elapse time.
 	export tool_version=`ls $GENOMICS_PATH/tools | grep ${tool}- | head -n1` && echo ${tool_version} && ln -sfn $GENOMICS_PATH/tools/$tool_version $GENOMICS_PATH/tools/$tool; 
 
 	done;
+
+## Java version
+
+Use Java 11 to compile and run cromwell, but switch to java 8 as the default to run the workflows.
+
+```
+sudo alternatives --config java
+```

@@ -11,13 +11,14 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-export http_proxy=
-export https_proxy=
-export  no_proxy="localhost"
+export http_proxy=http://proxy-jf.intel.com:911
+export https_proxy=http://proxy-jf.intel.com:912
+export  no_proxy="localhost,intel.com"
 CROMWELL_HOST=$HOSTNAME
 
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 GENOMICS_PATH="/mnt/lustre/genomics"
+CROMWELL_PATH="/fastdata/02/genomics/cromwell"
 
 #specify the path to tools directory.By default,script expects tools to be in the following path
 TOOLS_PATH="$GENOMICS_PATH/tools"
@@ -26,7 +27,7 @@ TOOLS_PATH="$GENOMICS_PATH/tools"
 DATA_PATH="$BASEDIR/data"
 
 #Enter the number of workflow for throughput run
-NUM_WORKFLOW=64
+NUM_WORKFLOW=16
 
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 

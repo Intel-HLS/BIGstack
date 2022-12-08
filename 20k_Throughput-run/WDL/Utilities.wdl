@@ -19,13 +19,12 @@ version 1.0
 task CreateSequenceGroupingTSV {
   input {
     File ref_dict
-    Int preemptible_tries
   }
-  # Use python2 to create the Sequencing Groupings used for BQSR and PrintReads Scatter.
+  # Use python to create the Sequencing Groupings used for BQSR and PrintReads Scatter.
   # It outputs to stdout where it is parsed into a wdl Array[Array[String]]
   # e.g. [["1"], ["2"], ["3", "4"], ["5"], ["6", "7", "8"]]
   command <<<
-    python2 <<CODE
+    python3 <<CODE
     with open("~{ref_dict}", "r") as ref_dict_file:
         sequence_tuple_list = []
         longest_sequence = 0
@@ -61,9 +60,7 @@ task CreateSequenceGroupingTSV {
     CODE
   >>>
   runtime {
-    preemptible: preemptible_tries
     cpu: "2"
-    #docker: "us.gcr.io/broad-gotc-prod/python2:2.7"
     memory: "2 GiB"
   }
   output {
@@ -74,7 +71,7 @@ task CreateSequenceGroupingTSV {
 
 # This task calls picard's IntervalListTools to scatter the input interval list into scatter_count sub interval lists
 # Note that the number of sub interval lists may not be exactly equal to scatter_count.  There may be slightly more or less.
-# Thus we have the block of python2 to count the number of generated sub interval lists.
+# Thus we have the block of python to count the number of generated sub interval lists.
 task ScatterIntervalList {
   input {
     File interval_list
@@ -85,7 +82,7 @@ task ScatterIntervalList {
   command <<<
     set -e
     mkdir out
-    java -Xms1g -Xmx2g -jar /mnt/lustre/genomics/tools/picard.jar \
+    java -Xms1000m -Xmx2g -jar /mnt/lustre/genomics/tools/picard.jar \
       IntervalListTools \
       SCATTER_COUNT=~{scatter_count} \
       SUBDIVISION_MODE=BALANCING_WITHOUT_INTERVAL_SUBDIVISION_WITH_OVERFLOW \
@@ -95,7 +92,7 @@ task ScatterIntervalList {
       INPUT=~{interval_list} \
       OUTPUT=out
 
-    python2 <<CODE
+    python3 <<CODE
     import glob, os
     # Works around a JES limitation where multiples files with the same name overwrite each other when globbed
     intervals = sorted(glob.glob("out/*/*.interval_list"))
@@ -112,8 +109,7 @@ task ScatterIntervalList {
   }
   runtime {
     cpu: "2"
-    #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"
-    memory: "2 GiB"
+    memory: "2000 MiB"
   }
 }
 
@@ -125,11 +121,9 @@ task ConvertToCram {
     File ref_fasta
     File ref_fasta_index
     String output_basename
-    Int preemptible_tries
-  }
 
-  Float ref_size = size(ref_fasta, "GiB") + size(ref_fasta_index, "GiB")
-  Int disk_size = ceil(2 * size(input_bam, "GiB") + ref_size) + 20
+    Int disk_size = ceil((2 * size(input_bam, "GiB")) + size(ref_fasta, "GiB") + size(ref_fasta_index, "GiB")) + 20
+  }
 
   command <<<
     set -e
@@ -140,7 +134,6 @@ task ConvertToCram {
     md5sum | awk '{print $1}' > ~{output_basename}.cram.md5
 
     # Create REF_CACHE. Used when indexing a CRAM
-    #seq_cache_populate.pl -root ./ref/cache ~{ref_fasta}
     /mnt/lustre/genomics/tools/samtools/misc/seq_cache_populate.pl -root ./ref/cache ~{ref_fasta}
     export REF_PATH=:
     export REF_CACHE=./ref/cache/%2s/%2s/%s
@@ -148,12 +141,8 @@ task ConvertToCram {
     /mnt/lustre/genomics/tools/samtools/samtools index ~{output_basename}.cram
   >>>
   runtime {
-    #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"
-    preemptible: preemptible_tries
     memory: "3 GiB"
-    #cpu: "1"
     cpu: "2"
-    disks: "local-disk " + disk_size + " HDD"
   }
   output {
     File output_cram = "~{output_basename}.cram"
@@ -180,11 +169,8 @@ task ConvertToBam {
     /mnt/lustre/genomics/tools/samtools/samtools index ~{output_basename}.bam
   >>>
   runtime {
-    #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"
-    preemptible: 3
     memory: "3 GiB"
-    cpu: "1"
-    disks: "local-disk 200 HDD"
+    cpu: "2"
   }
   output {
     File output_bam = "~{output_basename}.bam"
@@ -196,17 +182,128 @@ task ConvertToBam {
 task SumFloats {
   input {
     Array[Float] sizes
-    Int preemptible_tries
   }
 
   command <<<
-    python2 -c "print ~{sep="+" sizes}"
+    python3 -c 'print(~{sep="+" sizes})'
   >>>
   output {
     Float total_size = read_float(stdout())
   }
   runtime {
-    #docker: "us.gcr.io/broad-gotc-prod/python2:2.7"
-    preemptible: preemptible_tries
+  }
+}
+
+# Print given message to stderr and return an error
+task ErrorWithMessage {
+  input {
+    String message
+  }
+  command <<<
+    >&2 echo "Error: ~{message}"
+    exit 1
+  >>>
+
+  runtime {
+  }
+}
+
+# This task is unused for now, going to keep it in here though if we need it in the future
+task GetValidationInputs {
+  input {
+    String results_path
+    String truth_path
+    Array[String]? input_files
+    String? input_file
+
+    Int cpu = 1
+    Int memory_mb = 2000
+    Int disk_size_gb = 20
+  }
+
+  meta {
+    description: "Given either a file or list of files, output both the truth and results path"
+  }
+
+  command <<<
+    set -e
+
+    touch truth_file.txt
+    touch truth_files.txt
+    touch results_file.txt
+    touch results_files.txt
+
+    python3 <<CODE
+    import os.path
+
+
+
+    results_path = "~{results_path}"
+    truth_path = "~{truth_path}"
+    input_file = "~{input_file}"
+    input_files = [ x for x in [ "~{sep='", "' input_files}" ]  if x != "" ]
+
+    if input_file:
+      file = os.path.basename(input_file)
+      truth_file = os.path.join(truth_path, file)
+      results_file = os.path.join(results_path, file)
+
+      with open("truth_file.txt", "w") as f:
+        f.write(truth_file)
+      with open("results_file.txt", "w") as f:
+        f.write(results_file)
+
+    elif input_files:
+      truth_files, results_files = [], []
+
+      for input_file in input_files:
+        file = os.path.basename(input_file)
+        truth_files.append(os.path.join(truth_path, file))
+        results_files.append(os.path.join(results_path, file))
+
+      with open("truth_files.txt", "w") as f:
+        f.write("\n".join(truth_files))
+      with open("results_files.txt", "w") as f:
+        f.write("\n".join(results_files))
+
+
+    CODE
+  >>>
+
+  runtime {
+    cpu: cpu
+    memory: "~{memory_mb} MiB"
+  }
+
+  output {
+    String truth_file = read_string("truth_file.txt")
+    String results_file = read_string("results_file.txt")
+    Array[String] truth_files = read_lines("truth_files.txt")
+    Array[String] results_files = read_lines("results_files.txt")
+  }
+
+}
+
+# If keep_inputs is true then this outputs the same file that was input, otherwise it outputs null.
+task MakeOptionalOutputBam {
+  input {
+    File bam_input
+    File bai_input
+    Boolean keep_inputs
+  }
+    Int disk_size = ceil(size(bam_input, "GiB")) + 5
+    String basename = basename(bam_input, ".bam")
+  command<<<
+    if [ ~{keep_inputs} = "true" ]
+    then
+      ln -s ~{bam_input} ~{basename}.bam
+      ln -s ~{bai_input} ~{basename}.bai
+    fi
+  >>>
+  runtime {
+  }
+  output {
+    File? optional_output_bam = "~{basename}.bam"
+    File? optional_output_bai = "~{basename}.bai"
   }
 }
