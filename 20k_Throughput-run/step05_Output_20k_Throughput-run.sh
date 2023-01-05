@@ -53,7 +53,7 @@ limit=$NUM_WORKFLOW
 for i in `cat 20k_WF_ID/20k_WF_ID_*`;
 do
 
-data=`grep "Elapsed time: " $GENOMICS_PATH/cromwell/cromwell-slurm-exec/WholeGenomeGermlineSingleSample/$i/call-*/*/*/call-MarkDuplicates/execution/stderr | cut -d ':' -f 4 | cut -d " " -f 2`
+data=`grep "Elapsed time: " $CROMWELL_PATH/cromwell-slurm-exec/WholeGenomeGermlineSingleSample/$i/call-*/*/*/call-MarkDuplicates/execution/stderr | cut -d ':' -f 4 | cut -d " " -f 2`
 
 x=`echo $data | cut -d '.' -f 1`
 y=`echo $data | cut -d '.' -f 2`

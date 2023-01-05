@@ -10,6 +10,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+source ./configure
+
 echo "Downloading Reference Data (if it doesn't already exist)"
 GCP_PATH="https://storage.googleapis.com"
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

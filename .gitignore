@@ -1,0 +1,7 @@
+20k_Throughput-run/20k_WF_ID*
+*.zip
+20k_Throughput-run/20k_submission_response.txt
+20k_Throughput-run/JSON
+20k_Throughput-run/cromwell-monitor
+20k_Throughput-run/cromwell*
+20k_Throughput-run/data

@@ -30,8 +30,9 @@ task SamToFastqAndBwaMemAndMba {
     ReferenceFasta reference_fasta
 
     Int compression_level
-    Int preemptible_tries
     Boolean hard_clip_reads = false
+    Boolean unmap_contaminant_reads = true
+    Boolean allow_empty_ref_alt = false
   }
 
   Float unmapped_bam_size = size(input_bam, "GiB")
@@ -47,7 +48,7 @@ task SamToFastqAndBwaMemAndMba {
 
     # This is done before "set -o pipefail" because "bwa" will have a rc=1 and we don't want to allow rc=1 to succeed
     # because the sed may also fail with that error and that is something we actually want to fail on.
-    BWA_VERSION=$(/mnt/lustre/genomics/tools/bwa-0.7.17/bwa 2>&1 | \
+    BWA_VERSION=$(/mnt/lustre/genomics/tools/bwa/bwa 2>&1 | \
     grep -e '^Version' | \
     sed 's/Version: //')
 
@@ -60,15 +61,15 @@ task SamToFastqAndBwaMemAndMba {
 
     # set the bash variable needed for the command-line
     bash_ref_fasta=~{reference_fasta.ref_fasta}
-    # if reference_fasta.ref_alt has data in it,
-    if [ -s ~{reference_fasta.ref_alt} ]; then
+    # if reference_fasta.ref_alt has data in it or allow_empty_ref_alt is set
+    if [ -s ~{reference_fasta.ref_alt} ] || ~{allow_empty_ref_alt}; then
       java -Xms1000m -Xmx1000m -jar /mnt/lustre/genomics/tools/picard.jar \
         SamToFastq \
         INPUT=~{input_bam} \
         FASTQ=/dev/stdout \
         INTERLEAVE=true \
         NON_PF=true | \
-      /mnt/lustre/genomics/tools/bwa-0.7.17/~{bwa_commandline} /dev/stdin - 2> >(tee ~{output_bam_basename}.bwa.stderr.log >&2) | \
+      /mnt/lustre/genomics/tools/bwa/~{bwa_commandline} /dev/stdin - 2> >(tee ~{output_bam_basename}.bwa.stderr.log >&2) | \
       java -Dsamjdk.compression_level=~{compression_level} -Xms1000m -Xmx1000m -jar /mnt/lustre/genomics/tools/picard.jar \
         MergeBamAlignment \
         VALIDATION_STRINGENCY=SILENT \
@@ -80,7 +81,6 @@ task SamToFastqAndBwaMemAndMba {
         UNMAPPED_BAM=~{input_bam} \
         OUTPUT=~{output_bam_basename}.bam \
         REFERENCE_SEQUENCE=~{reference_fasta.ref_fasta} \
-        PAIRED_RUN=true \
         SORT_ORDER="unsorted" \
         IS_BISULFITE_SEQUENCE=false \
         ALIGNED_READS_ONLY=false \
@@ -97,24 +97,23 @@ task SamToFastqAndBwaMemAndMba {
         PROGRAM_GROUP_NAME="bwamem" \
         UNMAPPED_READ_STRATEGY=COPY_TO_TAG \
         ALIGNER_PROPER_PAIR_FLAGS=true \
-        UNMAP_CONTAMINANT_READS=true \
+        UNMAP_CONTAMINANT_READS=~{unmap_contaminant_reads} \
         ADD_PG_TAG_TO_READS=false
 
-      grep -m1 "read .* ALT contigs" ~{output_bam_basename}.bwa.stderr.log | \
-      grep -v "read 0 ALT contigs"
+      if ~{!allow_empty_ref_alt}; then
+        grep -m1 "read .* ALT contigs" ~{output_bam_basename}.bwa.stderr.log | \
+        grep -v "read 0 ALT contigs"
+      fi
 
     # else reference_fasta.ref_alt is empty or could not be found
     else
+      echo ref_alt input is empty or not provided. >&2
       exit 1;
     fi
   >>>
   runtime {
-    #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"
-    preemptible: preemptible_tries
     memory: "14 GiB"
-    cpu: "8"
-    #backend: "SLURM-BWA"
-    disks: "local-disk " + disk_size + " HDD"
+    cpu: "16"
   }
   output {
     File output_bam = "~{output_bam_basename}.bam"
@@ -126,7 +125,6 @@ task SamSplitter {
   input {
     File input_bam
     Int n_reads
-    Int preemptible_tries
     Int compression_level
   }
 
@@ -151,9 +149,6 @@ task SamSplitter {
     Array[File] split_bams = glob("output_dir/*.bam")
   }
   runtime {
-    #docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.7-1603303710"
-    preemptible: preemptible_tries
     memory: "3.75 GiB"
-    disks: "local-disk " + disk_size + " HDD"
   }
 }

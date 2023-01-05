@@ -16,6 +16,7 @@ version 1.0
 ## licensing information pertaining to the included programs.
 
 import "Alignment.wdl" as Alignment
+import "DragmapAlignment.wdl" as DragmapAlignment
 import "BamProcessing.wdl" as Processing
 import "Utilities.wdl" as Utils
 import "DNASeqStructs.wdl" as Structs
@@ -32,18 +33,20 @@ workflow SplitLargeReadGroup {
     # (https://github.com/lh3/bwa/tree/master/bwakit),
     # listing the reference contigs that are "alternative".
     ReferenceFasta reference_fasta
+    DragmapReference? dragmap_reference
 
     Int compression_level
-    Int preemptible_tries
     Int reads_per_file = 48000000
     Boolean hard_clip_reads = false
+    Boolean unmap_contaminant_reads = true
+    Boolean use_bwa_mem = true
+    Boolean allow_empty_ref_alt = false
   }
 
   call Alignment.SamSplitter as SamSplitter {
     input :
       input_bam = input_bam,
       n_reads = reads_per_file,
-      preemptible_tries = preemptible_tries,
       compression_level = compression_level
   }
 
@@ -51,32 +54,47 @@ workflow SplitLargeReadGroup {
     Float current_unmapped_bam_size = size(unmapped_bam, "GiB")
     String current_name = basename(unmapped_bam, ".bam")
 
-    call Alignment.SamToFastqAndBwaMemAndMba as SamToFastqAndBwaMemAndMba {
-      input:
-        input_bam = unmapped_bam,
-        bwa_commandline = bwa_commandline,
-        output_bam_basename = current_name,
-        reference_fasta = reference_fasta,
-        compression_level = compression_level,
-        preemptible_tries = preemptible_tries,
-        hard_clip_reads = hard_clip_reads
+    if (use_bwa_mem) {
+      call Alignment.SamToFastqAndBwaMemAndMba as SamToFastqAndBwaMemAndMba {
+        input:
+          input_bam = unmapped_bam,
+          bwa_commandline = bwa_commandline,
+          output_bam_basename = current_name,
+          reference_fasta = reference_fasta,
+          compression_level = compression_level,
+          hard_clip_reads = hard_clip_reads,
+          unmap_contaminant_reads = unmap_contaminant_reads,
+          allow_empty_ref_alt = allow_empty_ref_alt
+      }
+    }
+    if (!use_bwa_mem) {
+      call DragmapAlignment.SamToFastqAndDragmapAndMba as SamToFastqAndDragmapAndMba {
+        input:
+          input_bam = unmapped_bam,
+          output_bam_basename = current_name,
+          reference_fasta = reference_fasta,
+          dragmap_reference = select_first([dragmap_reference]),
+          compression_level = compression_level,
+          hard_clip_reads = hard_clip_reads,
+          unmap_contaminant_reads = unmap_contaminant_reads
+      }
     }
 
-    Float current_mapped_size = size(SamToFastqAndBwaMemAndMba.output_bam, "GiB")
+    File output_bam = select_first([SamToFastqAndBwaMemAndMba.output_bam, SamToFastqAndDragmapAndMba.output_bam])
+
+    Float current_mapped_size = size(output_bam, "GiB")
   }
 
   call Utils.SumFloats as SumSplitAlignedSizes {
     input:
       sizes = current_mapped_size,
-      preemptible_tries = preemptible_tries
   }
 
   call Processing.GatherUnsortedBamFiles as GatherMonolithicBamFile {
     input:
-      input_bams = SamToFastqAndBwaMemAndMba.output_bam,
+      input_bams = output_bam,
       total_input_size = SumSplitAlignedSizes.total_size,
       output_bam_basename = output_bam_basename,
-      preemptible_tries = preemptible_tries,
       compression_level = compression_level
   }
   output {
