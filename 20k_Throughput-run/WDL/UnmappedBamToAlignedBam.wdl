@@ -69,7 +69,7 @@ workflow UnmappedBamToAlignedBam {
     call QC.CollectQualityYieldMetrics as CollectQualityYieldMetrics {
       input:
         input_bam = unmapped_bam,
-        metrics_filename = unmapped_bam_basename + ".unmapped.quality_yield_metrics",
+        metrics_filename = unmapped_bam_basename + ".unmapped.quality_yield_metrics"
     }
 
     if (unmapped_bam_size > cutoff_for_large_rg_in_gb) {
@@ -128,19 +128,13 @@ workflow UnmappedBamToAlignedBam {
     call QC.CollectUnsortedReadgroupBamQualityMetrics as CollectUnsortedReadgroupBamQualityMetrics {
       input:
         input_bam = output_aligned_bam,
-        output_bam_prefix = unmapped_bam_basename + ".readgroup",
+        output_bam_prefix = unmapped_bam_basename + ".readgroup"
     }
-  }
-
-  # Sum the read group bam sizes to approximate the aggregated bam size
-  call Utils.SumFloats as SumFloats {
-    input:
-      sizes = mapped_bam_size,
   }
 
   # MarkDuplicates and SortSam currently take too long for preemptibles if the input data is too large
   Float gb_size_cutoff_for_preemptibles = 110.0
-  Boolean data_too_large_for_preemptibles = SumFloats.total_size > gb_size_cutoff_for_preemptibles
+  Boolean data_too_large_for_preemptibles = size(output_aligned_bam, "GiB") > gb_size_cutoff_for_preemptibles
 
   # Aggregate aligned+merged flowcell BAM files and mark duplicates
   # We take advantage of the tool's ability to take multiple BAM inputs and write out a single output
@@ -150,8 +144,8 @@ workflow UnmappedBamToAlignedBam {
       input_bams = output_aligned_bam,
       output_bam_basename = sample_and_unmapped_bams.base_file_name + ".aligned.unsorted.duplicates_marked",
       metrics_filename = sample_and_unmapped_bams.base_file_name + ".duplicate_metrics",
-      total_input_size = SumFloats.total_size,
-      compression_level = compression_level,
+      total_input_size = size(output_aligned_bam, "GiB"),
+      compression_level = compression_level
   }
 
   # Sort aggregated+deduped BAM file and fix tags
@@ -159,7 +153,7 @@ workflow UnmappedBamToAlignedBam {
     input:
       input_bam = MarkDuplicates.output_bam,
       output_bam_basename = sample_and_unmapped_bams.base_file_name + ".aligned.duplicate_marked.sorted",
-      compression_level = compression_level,
+      compression_level = compression_level
   }
 
   Float agg_bam_size = size(SortSampleBam.output_bam, "GiB")
@@ -174,14 +168,14 @@ workflow UnmappedBamToAlignedBam {
         metrics_filename = sample_and_unmapped_bams.base_file_name + ".crosscheck",
         total_input_size = agg_bam_size,
         lod_threshold = lod_threshold,
-        cross_check_by = cross_check_fingerprints_by,
+        cross_check_by = cross_check_fingerprints_by
     }
   }
 
   # Create list of sequences for scatter-gather parallelization
   call Utils.CreateSequenceGroupingTSV as CreateSequenceGroupingTSV {
     input:
-      ref_dict = references.reference_fasta.ref_dict,
+      ref_dict = references.reference_fasta.ref_dict
   }
 
   # Estimate level of cross-sample contamination
@@ -223,7 +217,7 @@ workflow UnmappedBamToAlignedBam {
           ref_dict = references.reference_fasta.ref_dict,
           ref_fasta = references.reference_fasta.ref_fasta,
           ref_fasta_index = references.reference_fasta.ref_fasta_index,
-          bqsr_scatter = bqsr_divisor,
+          bqsr_scatter = bqsr_divisor
       }
     }
 
@@ -232,7 +226,7 @@ workflow UnmappedBamToAlignedBam {
     call Processing.GatherBqsrReports as GatherBqsrReports {
       input:
         input_bqsr_reports = BaseRecalibrator.recalibration_report,
-        output_report_filename = sample_and_unmapped_bams.base_file_name + ".recal_data.csv",
+        output_report_filename = sample_and_unmapped_bams.base_file_name + ".recal_data.csv"
     }
 
     scatter (subgroup in CreateSequenceGroupingTSV.sequence_grouping_with_unmapped) {

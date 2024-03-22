@@ -9,7 +9,7 @@ import "DragenTasks.wdl" as DragenTasks
 workflow VariantCalling {
 
 
-  String pipeline_version = "2.1.5"
+  String pipeline_version = "2.1.17"
 
 
   input {
@@ -176,7 +176,7 @@ workflow VariantCalling {
       ref_dict = ref_dict,
       calling_interval_list = calling_interval_list,
       is_gvcf = make_gvcf,
-      extra_args = "--no-overlaps",
+      extra_args = if (skip_reblocking == false) then "--no-overlaps" else ""
   }
 
   # QC the (g)VCF

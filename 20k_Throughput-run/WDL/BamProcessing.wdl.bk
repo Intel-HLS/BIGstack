@@ -136,7 +136,7 @@ task BaseRecalibrator {
 
   command {
     /mnt/lustre/genomics/tools/gatk/gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -XX:+PrintFlagsFinal \
-      -Xlog:gc*:gc_log.log:time,level,tags \
+      -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails \
       -Xloggc:gc_log.log -Xms5g -Xmx6g" \
       BaseRecalibrator \
       -R ~{ref_fasta} \
@@ -190,8 +190,8 @@ task ApplyBQSR {
   }
 
   command {
-    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-XX:+PrintFlagsFinal \
-      -Xlog:gc*:gc_log.log:time,level,tags \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-XX:+PrintFlagsFinal -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps \
+      -XX:+PrintGCDetails -Xloggc:gc_log.log \
       -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Dsamjdk.compression_level=~{compression_level} -Xms3000m -Xmx~{java_memory_mb}m" \
       ApplyBQSR \
       --create-output-bam-md5 \
