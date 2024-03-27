@@ -81,19 +81,12 @@ workflow SplitLargeReadGroup {
     }
 
     File output_bam = select_first([SamToFastqAndBwaMemAndMba.output_bam, SamToFastqAndDragmapAndMba.output_bam])
-
-    Float current_mapped_size = size(output_bam, "GiB")
-  }
-
-  call Utils.SumFloats as SumSplitAlignedSizes {
-    input:
-      sizes = current_mapped_size,
   }
 
   call Processing.GatherUnsortedBamFiles as GatherMonolithicBamFile {
     input:
       input_bams = output_bam,
-      total_input_size = SumSplitAlignedSizes.total_size,
+      total_input_size = size(output_bam, "GiB"),
       output_bam_basename = output_bam_basename,
       compression_level = compression_level
   }

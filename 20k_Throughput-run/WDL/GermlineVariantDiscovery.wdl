@@ -67,6 +67,7 @@ task HaplotypeCaller_GATK35_GVCF {
   runtime {
     memory: "10000 MiB"
     cpu: "2"
+    backend: "SLURM-HAPLO"
   }
   output {
     File output_gvcf = "~{gvcf_basename}.vcf.gz"
@@ -112,16 +113,6 @@ task HaplotypeCaller_GATK4_VCF {
 
   command <<<
     set -e
-    # We need at least 1 GB of available memory outside of the Java heap in order to execute native code, thus, limit
-    # Java's memory by the total memory minus 1 GB. We need to compute the total memory as it might differ from
-    # memory_size_gb because of Cromwell's retry with more memory feature.
-    # Note: In the future this should be done using Cromwell's ${MEM_SIZE} and ${MEM_UNIT} environment variables,
-    #       which do not rely on the output format of the `free` command.
-    available_memory_mb=$(free -m | awk '/^Mem/ {print $2}')
-    let java_memory_size_mb=available_memory_mb-1024
-    echo Total available memory: ${available_memory_mb} MB >&2
-    echo Memory reserved for Java: ${java_memory_size_mb} MB >&2
-
     /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms6000m -Xmx6400m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
       HaplotypeCaller \
       -R ~{ref_fasta} \
@@ -144,6 +135,7 @@ task HaplotypeCaller_GATK4_VCF {
   runtime {
     memory: "6.5 GiB" 
     cpu: "2"
+    backend: "SLURM-HAPLO"
   }
 
   output {
@@ -192,22 +184,32 @@ task Reblock {
     String output_vcf_filename
     Int additional_disk = 20
     String? annotations_to_keep_command
+    String? annotations_to_remove_command
     Float? tree_score_cutoff
+    Boolean move_filters_to_genotypes = false
   }
 
   Int disk_size = ceil((size(gvcf, "GiB")) * 4) + additional_disk
+  String gvcf_basename = basename(gvcf)
+  String gvcf_index_basename = basename(gvcf_index)
 
   command {
     set -e 
 
+    # We can't always assume the index was located with the gvcf, so make a link so that the paths look the same
+    ln -s ~{gvcf} ~{gvcf_basename}
+    ln -s ~{gvcf_index} ~{gvcf_index_basename}
+
     /mnt/lustre/genomics/tools/gatk/gatk --java-options "-Xms3000m -Xmx3000m" \
       ReblockGVCF \
       -R ~{ref_fasta} \
-      -V ~{gvcf} \
+      -V ~{gvcf_basename} \
       -do-qual-approx \
       --floor-blocks -GQB 20 -GQB 30 -GQB 40 \
       ~{annotations_to_keep_command} \
+      ~{annotations_to_remove_command} \
       ~{"--tree-score-threshold-to-no-call " + tree_score_cutoff} \
+      ~{if move_filters_to_genotypes then "--add-site-filters-to-genotype" else ""} \
       -O ~{output_vcf_filename}
   }
 
