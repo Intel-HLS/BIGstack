@@ -190,8 +190,6 @@ task SumFloats {
   output {
     Float total_size = read_float(stdout())
   }
-  runtime {
-  }
 }
 
 # Print given message to stderr and return an error
@@ -203,9 +201,6 @@ task ErrorWithMessage {
     >&2 echo "Error: ~{message}"
     exit 1
   >>>
-
-  runtime {
-  }
 }
 
 # This task is unused for now, going to keep it in here though if we need it in the future
@@ -282,28 +277,4 @@ task GetValidationInputs {
     Array[String] results_files = read_lines("results_files.txt")
   }
 
-}
-
-# If keep_inputs is true then this outputs the same file that was input, otherwise it outputs null.
-task MakeOptionalOutputBam {
-  input {
-    File bam_input
-    File bai_input
-    Boolean keep_inputs
-  }
-    Int disk_size = ceil(size(bam_input, "GiB")) + 5
-    String basename = basename(bam_input, ".bam")
-  command<<<
-    if [ ~{keep_inputs} = "true" ]
-    then
-      ln -s ~{bam_input} ~{basename}.bam
-      ln -s ~{bai_input} ~{basename}.bai
-    fi
-  >>>
-  runtime {
-  }
-  output {
-    File? optional_output_bam = "~{basename}.bam"
-    File? optional_output_bai = "~{basename}.bai"
-  }
 }

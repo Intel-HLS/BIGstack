@@ -29,10 +29,6 @@ task SortSam {
   Float sort_sam_disk_multiplier = 3.25
   Int disk_size = ceil(sort_sam_disk_multiplier * size(input_bam, "GiB")) + additional_disk
 
-  Int machine_mem_mb = ceil(5000 * memory_multiplier)
-  Int java_max_memory_mb = machine_mem_mb - 500
-  Int java_inital_memory_mb = machine_mem_mb - 1000
-
   command {
     java -Dsamjdk.compression_level=~{compression_level} -Xms4000m -Xmx4900m -jar /mnt/lustre/genomics/tools/picard.jar \
       SortSam \
@@ -140,7 +136,7 @@ task BaseRecalibrator {
 
   command {
     /mnt/lustre/genomics/tools/gatk/gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -XX:+PrintFlagsFinal \
-      -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails \
+      -Xlog:gc*:gc_log.log:time,level,tags \
       -Xloggc:gc_log.log -Xms5g -Xmx6g" \
       BaseRecalibrator \
       -R ~{ref_fasta} \
@@ -194,8 +190,8 @@ task ApplyBQSR {
   }
 
   command {
-    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-XX:+PrintFlagsFinal -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps \
-      -XX:+PrintGCDetails -Xloggc:gc_log.log \
+    /mnt/lustre/genomics/tools/gatk/gatk --java-options "-XX:+PrintFlagsFinal \
+      -Xlog:gc*:gc_log.log:time,level,tags \
       -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Dsamjdk.compression_level=~{compression_level} -Xms3000m -Xmx~{java_memory_mb}m" \
       ApplyBQSR \
       --create-output-bam-md5 \
@@ -257,9 +253,6 @@ task GatherSortedBamFiles {
 
   # Multiply the input bam size by two to account for the input and output
   Int disk_size = ceil(2 * total_input_size) + additional_disk
-  Int machine_mem_mb = ceil(3000 * memory_multiplier)
-  Int java_max_memory_mb = machine_mem_mb - 500
-  Int java_inital_memory_mb = machine_mem_mb - 1000
 
   command {
     java -Dsamjdk.compression_level=~{compression_level} -Xms2000m -Xmx2900m -jar /mnt/lustre/genomics/tools/picard.jar \
