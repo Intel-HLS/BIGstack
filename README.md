@@ -2,8 +2,8 @@
 
 [Intel® Select Solutions for Genomics Analytics](https://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/select-solutions-for-genomics-analytics-brief-v2.pdf)
 is an end-to-end, optimized hardware and software solution for analyzing 
-genomic data. It provides a way to run pre-packaged, optimized workﬂows, including the Genome Analysis Toolkit* 
-(GATK*) Best Practices workﬂows from the Broad Institute. 
+genomic data. It provides a way to run pre-packaged, optimized workflows, including the Genome Analysis Toolkit* 
+(GATK*) Best Practices workflows from the Broad Institute. 
 
 This repo contains a simple smoketest benchmark for HPC clusters ("20k Throughput Run").  The test ensures your HPC system is configured correctly to run whole genome and whole exome samples.
 
