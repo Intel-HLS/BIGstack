@@ -1,4 +1,4 @@
-#/bin/bash
+#! /bin/bash
 echo "BIGStack Tutorial Step 2"
 echo "Downloading Reference Data (if it doesn't already exist)"
 GCP_PATH="https://storage.googleapis.com"

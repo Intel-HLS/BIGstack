@@ -1,4 +1,4 @@
-#/bin/bash
+#! /bin/bash
 export http_proxy=
 export https_proxy=
 CROMWELL_HOST=$HOSTNAME

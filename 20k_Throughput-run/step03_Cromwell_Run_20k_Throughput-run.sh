@@ -21,7 +21,7 @@ limit=$NUM_WORKFLOW
 export DATE_WITH_TIME=`date "+%Y%m%d:%H-%M-%S"`
 mkdir "20k_WF_ID-"$DATE_WITH_TIME""
 mkdir "cromwell-status-"$DATE_WITH_TIME""
-#remove the temporarary diriectories from previous runs.
+#remove the temporary directories from previous runs.
 rm -rf cromwell-monitor
 rm -rf 20k_WF_ID
 #creating new temporary directories for monitoring and output results
